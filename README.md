@@ -44,6 +44,7 @@ easy-netty
     * 1.server发送消息
       * 含序列
     * 2.server/client未收到消息时重新发送
-    * 3.server/client再优化，将customizable和customizableHandler独立
+    * ~~3.server/client再优化，将customizable和customizableHandler独立~~
     * 4.NettyHelper抽象
+    * 5.server stop时，发送指令给客户端，客户端断开处理
     

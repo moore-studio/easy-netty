@@ -1,13 +1,17 @@
 package com.moore.tools.easynetty.process;
 
+import com.moore.tools.easynetty.constants.Constant;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -19,6 +23,7 @@ import java.util.function.Supplier;
  */
 @Slf4j
 public class Server {
+
     /**
      * 连接处理线程数量
      */
@@ -37,7 +42,13 @@ public class Server {
      * 是否已配置
      */
     private static boolean isConfigured = false;
+    /**
+     * 处理连接的线程池
+     */
     private static EventLoopGroup bossGroup;
+    /**
+     * 处理逻辑的线程池
+     */
     private static EventLoopGroup workerGroup;
     private static ChannelFuture channelFuture;
 
@@ -63,7 +74,15 @@ public class Server {
      *
      * @param config
      */
-    public static void customizable(Consumer<ServerBootstrap> config) {
+    public synchronized static void customizable(int bossThreads, int workerThreads, Consumer<ServerBootstrap> config) {
+        if (bossThreads == Constant.INVALID_THREADS) {
+            bossThreads = BOSS_GROUP_THREADS;
+        }
+        if (workerThreads == Constant.INVALID_THREADS) {
+            workerThreads = WORKER_GROUP_THREADS;
+        }
+        bossGroup = new NioEventLoopGroup(bossThreads);
+        workerGroup = new NioEventLoopGroup(workerThreads);
         config.accept(instance());
         if (!isConfigured) {
             isConfigured = true;
@@ -74,12 +93,20 @@ public class Server {
     /**
      * 对处理器进行自定义配置
      *
-     * @param impl 自定义处理器实例
+     * @param impl 处理器实例
      */
     public static void customizableHandler(Supplier<ChannelHandler> impl) {
-        customizable(bootstrap -> {
-            bossGroup = new NioEventLoopGroup(BOSS_GROUP_THREADS);
-            workerGroup = new NioEventLoopGroup(WORKER_GROUP_THREADS);
+        customizableHandler(Constant.INVALID_THREADS, Constant.INVALID_THREADS, impl);
+    }
+
+    /**
+     * 对处理器进行自定义配置
+     * @param bossThreads 处理连接的线程数
+     * @param workerThreads 处理逻辑的线程数
+     * @param impl 处理器实例
+     */
+    public static void customizableHandler(int bossThreads, int workerThreads, Supplier<ChannelHandler> impl) {
+        customizable(bossThreads, workerThreads, bootstrap -> {
             //设置链接组合业务处理组
             bootstrap.group(bossGroup, workerGroup)
                     //使用NIO非阻塞通信
@@ -90,6 +117,7 @@ public class Server {
             log.info("netty server init done");
         });
     }
+
 
     /**
      * 默认构建
@@ -139,8 +167,9 @@ public class Server {
 
     /**
      * 启动
+     *
      * @param channelHandle 配置channelHandle
-     * @param port 端口号
+     * @param port          端口号
      */
     public synchronized static void start(Supplier<ChannelInboundHandlerAdapter> channelHandle, int port) {
         if (nonInstance()) {

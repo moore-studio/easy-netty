@@ -1,6 +1,7 @@
 package com.moore.tools.easynetty.process;
 
 
+import com.moore.tools.easynetty.constants.Constant;
 import com.moore.tools.easynetty.service.NettyHelper;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -56,11 +57,16 @@ public class Client {
     }
 
     /**
-     * 根据需求自定义构建
+     * 自定义bootstrap配置
      *
-     * @param config
+     * @param workerThreads 业务线程数量
+     * @param config        bootstrap
      */
-    public static void customizable(Consumer<Bootstrap> config) {
+    public synchronized static void customizable(int workerThreads, Consumer<Bootstrap> config) {
+        if (workerThreads == Constant.INVALID_THREADS) {
+            workerThreads = WORKER_GROUP_THREADS;
+        }
+        workerGroup = new NioEventLoopGroup(workerThreads);
         config.accept(instance());
         if (!isConfigured) {
             isConfigured = true;
@@ -70,11 +76,20 @@ public class Client {
     /**
      * 对处理器进行自定义配置
      *
-     * @param impl 自定义处理器实例
+     * @param impl 处理器实例
      */
     public static void customizableHandler(Supplier<ChannelHandler> impl) {
-        customizable(bootstrap -> {
-            workerGroup = new NioEventLoopGroup(WORKER_GROUP_THREADS);
+        customizableHandler(Constant.INVALID_THREADS, impl);
+    }
+
+    /**
+     * 对处理器进行自定义配置
+     * @param workerThreads 业务处理线程数
+     * @param impl 处理器实例
+     */
+    public static void customizableHandler(int workerThreads, Supplier<ChannelHandler> impl) {
+        customizable(workerThreads, bootstrap -> {
+
             //设置链接组合业务处理组
             bootstrap.group(workerGroup)
                     //使用NIO非阻塞通信
