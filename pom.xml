@@ -40,8 +40,16 @@
             <artifactId>logback-classic</artifactId>
             <version>1.2.10</version>
         </dependency>
-
-
+        <dependency>
+            <groupId>com.moore.commonutil</groupId>
+            <artifactId>common-util</artifactId>
+            <version>1.1.0-fixed</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>2.0.16</version>
+        </dependency>
     </dependencies>
 
 </project>

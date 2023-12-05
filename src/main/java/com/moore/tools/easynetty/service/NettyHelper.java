@@ -1,10 +1,16 @@
 package com.moore.tools.easynetty.service;
 
+import com.alibaba.fastjson.JSON;
+import com.moore.tools.easynetty.entities.NettyEntity;
+import com.moore.tools.easynetty.enums.CommandSendType;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.Charset;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -12,6 +18,7 @@ import java.util.function.Consumer;
  * @author imoore
  * @date 2023/11/13
  */
+@Slf4j
 public class NettyHelper {
 
     private final static Integer UUID_LEN = UUID.randomUUID().toString().length();
@@ -96,5 +103,34 @@ public class NettyHelper {
         receivedDataWithSequence(message, UUID_LEN, messageConsumer);
     }
 
+    /**
+     * 接收消息（根据NettyEntity）
+     * @param data  JSON NettyEntity
+     * @param entity NettyEntity
+     * @return NettyEntity
+     * @param <R> NettyEntity
+     */
+    public static <R extends NettyEntity> R receive(Object data, Class<R> entity) {
+        AtomicReference<R> received = new AtomicReference<>();
+        receivedData(data, msg -> {
+            received.set(JSON.parseObject(msg, entity));
+        });
+        return received.get();
+    }
 
+    /**
+     * 指令发送：按照NettyEntity实体发送消息
+     * @param channel
+     * @param type
+     * @param entity
+     * @param callBack
+     * @param <P>
+     */
+    public static <P extends NettyEntity> void send(Channel channel, CommandSendType type, P entity, Runnable callBack) {
+        entity.setCommand(new NettyEntity.Command(type));
+        entity.setTaskId(entity.getCommand().getSequence());
+        String message = JSON.toJSONString(entity);
+        log.info("send:{}", message);
+        CompletableFuture.runAsync(() -> NettyHelper.send(channel, message)).thenRun(callBack);
+    }
 }

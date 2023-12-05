@@ -1,7 +1,8 @@
 package com.moore.tools.easynetty;
 
-import com.moore.tools.easynetty.process.Server;
-import com.moore.tools.easynetty.service.nettychanels.NettyServerHandler;
+import com.moore.tools.easynetty.process.NettyServer;
+import com.moore.tools.easynetty.service.security.ChannelHandler;
+import com.moore.tools.easynetty.service.dm.server.ServerChannelImpl;
 
 /**
  * @author ：imoore
@@ -11,16 +12,17 @@ import com.moore.tools.easynetty.service.nettychanels.NettyServerHandler;
  */
 public class ServerTest {
     public static void main(String[] args) throws InterruptedException {
-        Server.build(NettyServerHandler::new);
-        Server.start(9000);
-        int i = 0;
-        while (true) {
-            i++;
-            Thread.sleep(1000);
-            if (i == 60) {
-                Server.stop();
-                break;
-            }
-        }
+//        NettyServer.build(NettyServerHandler::new);
+        NettyServer.build(() -> new ChannelHandler(new ServerChannelImpl()));
+        NettyServer.start(9000);
+//        int i = 0;
+//        while (true) {
+//            i++;
+//            Thread.sleep(1000);
+//            if (i == 60) {
+//                NettyServer.stop();
+//                break;
+//            }
+//        }
     }
 }
