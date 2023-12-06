@@ -1,19 +1,14 @@
 package com.moore.tools.easynetty.service.sendreceive;
 
 import com.alibaba.fastjson.JSON;
-import com.moore.commonutil.utils.SystemSecretUtils;
-import com.moore.tools.easynetty.entities.NettyEntity;
-import com.moore.tools.easynetty.enums.CommandSendType;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.nio.charset.Charset;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -124,14 +119,6 @@ public abstract class ExchangeAbstractService<R> implements IExchangeService {
      */
     public void sendWithCallback(String message, Runnable callback) {
         sendWithCallback(channel, message, callback);
-    }
-
-    @Override
-    public <P extends NettyEntity> void sender(CommandSendType type, P message) {
-        message.setCommand(new NettyEntity.Command(type));
-        message.setFormAddress(SystemSecretUtils.getLocalhostAddress());
-        message.setTaskId(message.getCommand().getSequence());
-        sender(channel, JSON.toJSONString(message));
     }
 
     /**

@@ -66,7 +66,7 @@ public class NettyClient<E extends IExchangeService> {
             synchronized (ServerBootstrap.class) {
                 if (Objects.isNull(clientBootstrap)) {
                     clientBootstrap = new Bootstrap();
-                    nettyInstance = new NettyClient();
+                    //nettyInstance = new NettyClient();
 
                 }
             }
@@ -214,7 +214,7 @@ public class NettyClient<E extends IExchangeService> {
             }
         }
         if (isConnected) {
-            nettyInstance.exchange = CommonUtils.tryNewInstance(exchangeClass, new Class<?>[]{Channel.class}, channelFuture.channel());
+            //nettyInstance.exchange = CommonUtils.tryNewInstance(exchangeClass, new Class<?>[]{Channel.class}, channelFuture.channel());
             //添加监视，断开重连 需要配合心跳检测
             channelFuture.addListener((future -> {
                 if (!future.isSuccess()) {

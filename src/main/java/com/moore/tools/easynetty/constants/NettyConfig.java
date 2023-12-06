@@ -1,4 +1,4 @@
-package com.moore.tools.easynetty.entities;
+package com.moore.tools.easynetty.constants;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;

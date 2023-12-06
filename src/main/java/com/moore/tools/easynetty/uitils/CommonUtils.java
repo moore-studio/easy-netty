@@ -1,13 +1,7 @@
 package com.moore.tools.easynetty.uitils;
 
-import com.moore.commonutil.security.sha.SHA;
-import com.moore.commonutil.utils.SystemSecretUtils;
-
 import java.lang.reflect.Constructor;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author ：imoore
@@ -16,10 +10,6 @@ import java.util.stream.Collectors;
  * @version: v
  */
 public class CommonUtils {
-
-    public static String getUniqueClientId() {
-        return SHA.sha256(SystemSecretUtils.getComputerName() + SystemSecretUtils.getCurrentMacAddress());
-    }
 
     /**
      * 实例

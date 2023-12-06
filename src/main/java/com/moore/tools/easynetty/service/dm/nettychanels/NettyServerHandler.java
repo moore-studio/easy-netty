@@ -30,7 +30,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
         log.info("client connected!" + ctx.channel().remoteAddress().toString());
         CHANNELS.add(ctx.channel());
         String message = "server connected!";
-        NettyHelper.send(ctx.channel(), message);
+        NettyHelper.send(ctx.channel(), " ", message);
     }
 
     @Override
@@ -42,23 +42,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
 //        // 读取客户端发送的消息并验证消息序号
-//        ByteBuf buf = (ByteBuf) msg;
-//
-//        try {
-//            // 读取消息序号
-//            CharSequence receivedSequence = buf.readCharSequence(uuidLen, Charset.defaultCharset());
-//            // 读取消息长度
-//            int length = buf.readInt();
-//            byte[] content = new byte[length];
-//            buf.readBytes(content);
-//            // 验证消息序号
-//            log.info("received message,sequence:{},data:{}", receivedSequence, new String(content));
-//            String message = "server received data:" + receivedSequence;
-//            NettyHelper.send(ctx.channel(), message);
-//        } finally {
-//            buf.release(); // 释放ByteBuf
-//        }
-        NettyHelper.receivedDataWithSequence(msg, (sequence, data) -> {
+        NettyHelper.receivedData(msg, (sequence, data) -> {
             log.info("received message,sequence:{},data:{}", sequence, data);
         });
     }

@@ -1,11 +1,6 @@
 package com.moore.tools.easynetty.service.sendreceive;
 
-import com.moore.tools.easynetty.entities.NettyEntity;
-import com.moore.tools.easynetty.enums.CommandSendType;
-import com.moore.tools.easynetty.process.NettyClient;
 import io.netty.channel.Channel;
-
-import java.util.function.Consumer;
 
 /**
  * @author ：imoore
@@ -25,13 +20,6 @@ public interface IExchangeService {
      * @param message 数据
      */
     void sender(String message);
-
-    /**
-     * 消息发送
-     * @param type 类型
-     * @param message 消息
-     */
-    <P extends NettyEntity> void sender(CommandSendType type, P message);
 
     /**
      * 消息接收
