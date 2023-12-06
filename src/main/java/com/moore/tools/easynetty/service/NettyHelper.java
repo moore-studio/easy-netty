@@ -47,6 +47,7 @@ public class NettyHelper {
         buf.writeCharSequence(sequenceStr, Charset.defaultCharset());
         // 写入消息长度
         buf.writeInt(length);
+
         // 写入消息内容
         buf.writeBytes(bytes);
         channel.writeAndFlush(buf);
