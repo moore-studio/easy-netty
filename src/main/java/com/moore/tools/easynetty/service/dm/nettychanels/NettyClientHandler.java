@@ -18,7 +18,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         // 客户端接收到服务端的响应
         NettyHelper.receivedData(msg, (s, data) -> {
-            log.info("received response from server: {},s:{}", data, s);
+            log.info("received response from server: {},s:{}", data);
         });
     }
 

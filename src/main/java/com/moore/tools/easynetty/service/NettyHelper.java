@@ -5,8 +5,6 @@ import io.netty.channel.Channel;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.Charset;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -16,6 +14,11 @@ import java.util.function.Consumer;
  */
 @Slf4j
 public class NettyHelper {
+
+    /**
+     * 保留字节
+     */
+    private static final Integer RESERVED_BIT = 4;
 
     /**
      * 发送消息和序列（UUID）
@@ -34,21 +37,17 @@ public class NettyHelper {
      * @param message
      */
     public static void send(Channel channel, String sequence, String message) {
+        log.info("send:{}", message);
         message += "\n";
         byte[] bytes = message.getBytes();
         int length = bytes.length;
-
-        final String sequenceStr = Optional.ofNullable(sequence).orElse("");
+        final String sequenceStr = sequence != null ? sequence : "";
         final int sequenceLen = sequenceStr.length();
-        ByteBuf buf = channel.alloc().buffer(sequenceLen + length);
-        // 写入消息长度序列
+        ByteBuf buf = channel.alloc().buffer(RESERVED_BIT + sequenceLen + RESERVED_BIT + length); // Allocate buffer
+        //序列和数据写入缓冲区
         buf.writeInt(sequenceLen);
-        // 写入消息序号
         buf.writeCharSequence(sequenceStr, Charset.defaultCharset());
-        // 写入消息长度
         buf.writeInt(length);
-
-        // 写入消息内容
         buf.writeBytes(bytes);
         channel.writeAndFlush(buf);
     }
@@ -60,13 +59,7 @@ public class NettyHelper {
      * @param messageConsumer
      */
     public static void receivedData(Object message, Consumer<String> messageConsumer) {
-        ByteBuf buf = (ByteBuf) message;
-        byte[] bytes = new byte[buf.readableBytes()];
-        buf.readBytes(bytes);
-        messageConsumer.accept(new String(bytes));
-        // 释放ByteBuf
-        buf.release();
-//        receivedData(message,(sequence,msg)->messageConsumer.accept(msg));
+        receivedData(message, (sequence, msg) -> messageConsumer.accept(msg));
     }
 
     /**
@@ -76,20 +69,44 @@ public class NettyHelper {
      * @param messageConsumer
      */
     public static void receivedData(Object message, BiConsumer<String, String> messageConsumer) {
-        // 读取客户端发送的消息并验证消息序号
         ByteBuf buf = (ByteBuf) message;
         try {
-            // 读取序列号长度
-            int sequenceLen = buf.readInt();
-            // 读取消息序号
-            CharSequence receivedSequence = buf.readCharSequence(sequenceLen, Charset.defaultCharset());
-            // 读取消息长度
-            int length = buf.readInt();
-            byte[] content = new byte[length];
-            buf.readBytes(content);
-            messageConsumer.accept(receivedSequence.toString(), new String(content));
+            int sequenceLen = 0;
+            int contentLen = 0;
+
+            //检查是否有足够的可读字节 最少8bit
+            if (buf.readableBytes() >= 8) {
+                sequenceLen = buf.readInt();
+                contentLen = buf.readInt();
+            }
+
+            String sequence = "";
+            String data = "";
+            byte[] content;
+            //是否有足够的数据来读取序列号和内容
+            if (buf.readableBytes() >= sequenceLen + contentLen) {
+                //序列是否存在
+                if (sequenceLen > 0) {
+                    CharSequence receivedSequence = buf.readCharSequence(sequenceLen, Charset.defaultCharset()); // Read sequence
+                    content = new byte[contentLen];
+                    buf.readBytes(content); // Read content
+                    sequence = receivedSequence.toString();
+                    data = new String(content, Charset.defaultCharset());
+                } else { //序列不存在
+                    content = new byte[contentLen];
+                    buf.readBytes(content); // Read content
+                    data = new String(content, Charset.defaultCharset());
+                }
+            } else {//读取全部可读数据 进行返回
+                content = new byte[buf.readableBytes()];
+                buf.readBytes(content);
+                data = new String(content, Charset.defaultCharset());
+            }
+            messageConsumer.accept(sequence, data);
+        } catch (Exception e) {
+            log.error("received error " + e.getMessage(), e);
         } finally {
-            buf.release(); // 释放ByteBuf
+            buf.release();
         }
     }
 
