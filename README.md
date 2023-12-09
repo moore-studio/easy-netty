@@ -1,44 +1,35 @@
 # easy-netty
 easy-netty
-> 简单的netty服务端客户端
-> 1. service.dm -> demo做测试时使用最终会统一优化
-> 2. entities最终会统一优化（删除？）
-> 3. 客户端与服务端刚建立连接时:
->    1. 客户端向服务端发送RSA公钥（测试完毕后要改为只生成一次）
->    2. 服务端接收到客户端发送的公钥后，向客户端发送服务端公钥（所有客户端统一一个公钥）
->       1. 客户端 -> RSA密钥 -> （publicKey）发送 -> 服务端
->       2. 服务端接收到来自客户端的公钥 -> RSA密钥 -> （publicKey）发送 -> 客户端
->       3. 客户端用服务端的公钥进行数据加密 -> 服务端 私钥解密
->       4. 服务端用客户端的公钥加密 -> 客户端私钥解密
+> 简单的netty服务端客户端 纯净版
 * 简单启动netty服务
-  * server端
+  * NettyServer实例
   > NettyServer.customizableHandler()
   > 1. 追加心跳检测   
     ```
     //继承自ChannelInboundHandlerAdapter
-    Server.build(NettyServerHandler::new);
+    NettyServer.build(NettyServerHandler::new);
     //server启动端口号
-    Server.start(9000);
+    NettyServer.start(9000);
     //server关闭
-    Server.stop();
+    NettyServer.stop();
     ```
-  * client端
+  * NettyClient实例
   > NettyClient.connect(ip,port)
   > 1. 连接失败时，进行重连
   > 2. 断连重新连接
   > 3. bootstrap中追加心跳检测
-    ```
-    //继承自ChannelInboundHandlerAdapter
-    Client.build(NettyClientHandler::new);
-    //连接nettyserver
-    Client.connect("localhost",9000);
-    //每向server发送一条消息都会跟一条uuid，可以做追溯
-    Client.sendWithoutCallback("hello");
-    //发送完消息执行回调函数
-    Client.sendWithCallback("hello",()->{do something;});
-    //关闭
-    Client.stop();
-    ```
+  ```
+  
+  //继承自ChannelInboundHandlerAdapter
+  NettyClient.build(NettyClientHandler::new);
+  //NettyClient.bind(new BaseAbstractSender());
+  //连接nettyserver
+  NettyClient.connect("localhost",9000);
+  //发送消息
+  NettyClient.send("sequence","message");
+  //关闭
+  NettyClient.stop();
+  ```
   * NettyHelper
     ```
     //客户端向服务端发送消息时引用，每条一条有单独uuid
@@ -66,47 +57,48 @@ easy-netty
   IOperation Operation = Optional.ofNullable(map.get("a")).orElse("c");
   Operation.execute();
   ```
-  * service.sendreceive.IExchangeService
-  > 数据收发接口
+  * service.exchange.send.ISender
+
+  > 消息发送接口
   ```
     /**
      * 消息发送
-     * @param channel 信道
-     * @param message 数据
+     *
+     * @param channel  信道
+     * @param sequence 序列，用于确认消息是否发送 可以为null，也可以为""
+     * @param message 消息内容
      */
+    void send(Channel channel, String sequence, String message);
   
-  IExchangeService.sender(Channel channel,String message);
-  
-    /**
-     * 消息发送
-     * @param message 数据
-     */
-    void sender(String message);
+  ```
+  * service.exchange.BaseAbstractSender
+  > 消息发送基础实现，可以根据构造方法有参/无参来创建实例
+  ```
+  //无参构建
+  //在使用无参构建时，send必须使用参数存在io.netty.channel.Channel来发送消息
+  new BaseAbstractSender();
+  //有参构建
+  new BaseAbstractSender(io.netty.channel.Channel);
 
     /**
-     * 消息发送
-     * @param type 类型
+     * 设置消息的预留位置
+     * 在 send 方法中，这个预留位用于确保在消息的最开始和结束都有足够的空间存储序列号和消息内容的长度。
+     * 在写入sequence和message时分别加了预留位，占了4个字节的空间（默认），这样使接收方能够根据预留位
+     * 处存储的胀肚信息准确地解析出来序列号和消息内容
+     *
+     * @param reservedBit 预留位
+     */
+  public void setMessageReservedBit(int reservedBit)
+    /**
+     * 消息发送实现 
+     * 抽象方法中，所有实现基于这个方法，通过重写这个方法可以实现具体功能
+     * @param channel 信道
+     * @param sequence 序列
      * @param message 消息
      */
-    <P extends NettyEntity> void sender(CommandSendType type, P message);
-
-    /**
-     * 消息接收
-     * @param channel 信道
-     * @param message 数据
-     * @return entity
-     */
-    String received(Channel channel,Object message);
-  
-    /**
-     * 消息接收
-     * @param message 数据
-     * @return entity
-     */
-    String received(Object message);
-  
+    public void sendImpl(Channel channel, String sequence, String message)
   ```
-    
+  
   * 待完善
     * 1.server发送消息
       * 含序列
@@ -116,4 +108,4 @@ easy-netty
     * 5.server stop时，发送指令给客户端，客户端断开处理
     * Server中追加SSL
     * 自定义协议
-    
+  

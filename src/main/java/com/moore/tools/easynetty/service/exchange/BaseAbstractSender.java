@@ -50,6 +50,10 @@ public abstract class BaseAbstractSender implements ISender {
      * @param message 消息
      */
     public void sendImpl(Channel channel, String sequence, String message) {
+        if (nonChannelInstance()) {
+            log.error("未获取到channel");
+            return;
+        }
         log.info("send:{}", message);
         message += "\n";
         byte[] bytes = message.getBytes();
@@ -80,10 +84,7 @@ public abstract class BaseAbstractSender implements ISender {
      */
 
     public void send(String sequence, String message) {
-        if (nonChannelInstance()) {
-            log.error("未获取到channel");
-            return;
-        }
+
         sendImpl(channel, sequence, message);
     }
 }
