@@ -2,8 +2,7 @@ package com.moore.tools.easynetty.process;
 
 
 import com.moore.tools.easynetty.constants.Constant;
-import com.moore.tools.easynetty.service.sendreceive.IExchangeService;
-import com.moore.tools.easynetty.uitils.CommonUtils;
+import com.moore.tools.easynetty.service.exchange.send.ISender;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -12,7 +11,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.Delimiters;
-import io.netty.util.concurrent.GenericFutureListener;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
@@ -23,13 +21,13 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
+ * 客户端实例
  * @author ：imoore
  * @date ：created in 2023/11/9 22:29
- * @description：客户端
  * @version: v1
  */
 @Slf4j
-public class NettyClient<E extends IExchangeService> {
+public class NettyClient {
 
     /**
      * 业务处理线程数量一般是1：4或者1：8
@@ -48,13 +46,7 @@ public class NettyClient<E extends IExchangeService> {
     /**
      * 信息收发类
      */
-    public static Class<? extends IExchangeService> exchangeClass;
-    private static NettyClient nettyInstance;
-    /**
-     * 信息收发实例
-     */
-    private E exchange;
-
+    private static ISender sender;
 
     /**
      * 客户端实例创建
@@ -66,23 +58,12 @@ public class NettyClient<E extends IExchangeService> {
             synchronized (ServerBootstrap.class) {
                 if (Objects.isNull(clientBootstrap)) {
                     clientBootstrap = new Bootstrap();
-                    //nettyInstance = new NettyClient();
-
                 }
             }
         }
         return clientBootstrap;
     }
 
-    /**
-     * 绑定消息收发
-     *
-     * @param clazz 消息首发类
-     * @param <E>   实体
-     */
-    public static <E extends IExchangeService> void bindExchange(Class<E> clazz) {
-        exchangeClass = clazz;
-    }
 
     /**
      * 自定义bootstrap配置
@@ -125,7 +106,7 @@ public class NettyClient<E extends IExchangeService> {
                     //使用NIO非阻塞通信
                     .option(ChannelOption.SO_KEEPALIVE, true)
                     .channel(NioSocketChannel.class).handler(impl.get());
-            log.info("netty server init done");
+            log.info("Netty server init done");
         });
     }
 
@@ -172,6 +153,53 @@ public class NettyClient<E extends IExchangeService> {
         return false;
     }
 
+
+    /**
+     * 绑定消息收发
+     *
+     * @param sendImpl 消息首发类
+     * @param <E>      实体
+     */
+    public static <E extends ISender> void bind(E sendImpl) {
+        sender = sendImpl;
+    }
+
+    private static boolean isActive() {
+        return Objects.nonNull(channelFuture) && Objects.nonNull(channelFuture.channel()) && channelFuture.channel().isActive();
+    }
+
+    /**
+     * 消息发送
+     * @param message
+     */
+    public static void send(String message) {
+        if(Objects.isNull(sender)){
+            log.error("ISender not be implemented,please bind first ");
+            return;
+        }
+        if (!isActive()) {
+            log.error("Client not started,channel is inactive.");
+            return;
+        }
+        sender.send(channelFuture.channel(), null, message);
+    }
+
+    /**
+     * 消息发送
+     * @param message
+     */
+    public static void send(String sequence,String message) {
+        if(Objects.isNull(sender)){
+            log.error("ISender not be implemented,please bind first ");
+            return;
+        }
+        if (!isActive()) {
+            log.error("Client not started,channel is inactive.");
+            return;
+        }
+        sender.send(channelFuture.channel(), sequence, message);
+    }
+
     /**
      * 连接服务器
      * 必须实现bindExchange来指定客户端收发消息的方法
@@ -199,12 +227,12 @@ public class NettyClient<E extends IExchangeService> {
             try {
                 channelFuture = clientBootstrap.connect(ipAddress, port).sync();
                 isConnected = true;
-                log.info("client started on {}:{}.", ipAddress, port);
+                log.info("Client started on {}:{}.", ipAddress, port);
                 break;
             } catch (Exception e) {
                 retryCount++;
-                log.error("connected failed reason is " + e.getMessage(), e);
-                log.warn("retry {}", retryCount);
+                log.error("Connected failed reason is " + e.getMessage(), e);
+                log.warn("Retry attempt {}", retryCount);
 
                 try {
                     Thread.sleep(connectDelayTime * 1000);
@@ -280,12 +308,5 @@ public class NettyClient<E extends IExchangeService> {
         }
     }
 
-    public static <E extends IExchangeService> E exchange() {
-        if (Objects.isNull(exchangeClass)) {
-            log.error("IExchangeServer not instantiated. Please bind the message exchange class using bindExchange(impl)");
-            return null;
-        }
-        return (E) nettyInstance.exchange;
-    }
 
 }

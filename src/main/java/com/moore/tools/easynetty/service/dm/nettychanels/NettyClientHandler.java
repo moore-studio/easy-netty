@@ -1,6 +1,7 @@
 package com.moore.tools.easynetty.service.dm.nettychanels;
 
-import com.moore.tools.easynetty.service.NettyHelper;
+import com.moore.tools.easynetty.service.exchange.BaseAbstractReceiver;
+import com.moore.tools.easynetty.service.exchange.receive.IReceiver;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.extern.slf4j.Slf4j;
@@ -11,15 +12,23 @@ import lombok.extern.slf4j.Slf4j;
  * @description：nettychanel客户端
  * @version: v1
  */
+
 @Slf4j
 public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
+    private final IReceiver<BaseAbstractReceiver.ReceiveEntity<String>> receiver;
+
+    public NettyClientHandler() {
+        receiver = new BaseAbstractReceiver();
+    }
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        receiver.receive(msg);
         // 客户端接收到服务端的响应
-        NettyHelper.receivedData(msg, (s, data) -> {
-            log.info("received response from server: {},s:{}", data);
-        });
+//        NettyHelper.receivedData(msg, (s, data) -> {
+//            //log.info("received response from server: {},s:{}", data);
+//        });
     }
 
     @Override

@@ -16,9 +16,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
+ * 服务端实例
  * @author ：imoore
  * @date ：created in 2023/11/9 20:05
- * @description：nettyServer
  * @version: v
  */
 @Slf4j

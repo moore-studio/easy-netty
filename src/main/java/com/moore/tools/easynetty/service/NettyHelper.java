@@ -9,9 +9,12 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
+ * 消息收发帮助类
+ *
  * @author imoore
  * @date 2023/11/13
  */
+@Deprecated
 @Slf4j
 public class NettyHelper {
 
@@ -95,13 +98,14 @@ public class NettyHelper {
                 } else { //序列不存在
                     content = new byte[contentLen];
                     buf.readBytes(content); // Read content
-                    data = new String(content, Charset.defaultCharset());
+                    data = new String(content, Charset.defaultCharset()).replace("\n","");
                 }
             } else {//读取全部可读数据 进行返回
                 content = new byte[buf.readableBytes()];
                 buf.readBytes(content);
                 data = new String(content, Charset.defaultCharset());
             }
+            log.info("Received sequence:{},message:{}", sequence, data);
             messageConsumer.accept(sequence, data);
         } catch (Exception e) {
             log.error("received error " + e.getMessage(), e);
