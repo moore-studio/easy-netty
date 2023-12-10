@@ -1,7 +1,6 @@
 package com.moore.tools.easynetty.service.netty;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.EventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 
