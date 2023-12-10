@@ -1,6 +1,6 @@
 package com.moore.tools.easynetty;
 
-import com.moore.tools.easynetty.process.NettyClient;
+import com.moore.tools.easynetty.service.NettyClient;
 import com.moore.tools.easynetty.service.NettyHelper;
 import com.moore.tools.easynetty.service.dm.nettychanels.NettyClientHandler;
 import com.moore.tools.easynetty.service.exchange.BaseAbstractSender;
@@ -17,6 +17,19 @@ import java.util.UUID;
 @Slf4j
 public class ClientTest {
     public static void main(String[] args) throws InterruptedException {
+        NettyClient nettyClient = new NettyClient();
+        nettyClient.addChannelHandler(NettyClientHandler::new)
+                .bind(new BaseAbstractSender() {
+                })
+                .connect("localhost", 9000);
+
+        for (int i = 0; i < 10; i++) {
+            nettyClient.send(("Hello, Netty Server ! " + i));
+            Thread.sleep(1000);
+        }
+        nettyClient.stop();
+        //静态方法
+        /*
         NettyClient.build(NettyClientHandler::new);
         NettyClient.bind(new BaseAbstractSender() {
         });
@@ -26,7 +39,8 @@ public class ClientTest {
             Thread.sleep(1000);
         }
 
-        NettyClient.stop();
+        NettyClient.stop();*/
     }
+
 
 }

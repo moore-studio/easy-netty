@@ -1,7 +1,7 @@
 package com.moore.tools.easynetty.process;
 
 
-import com.moore.tools.easynetty.constants.Constant;
+import com.moore.tools.easynetty.common.constants.Constant;
 import com.moore.tools.easynetty.service.exchange.send.ISender;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -26,6 +26,7 @@ import java.util.function.Supplier;
  * @date ：created in 2023/11/9 22:29
  * @version: v1
  */
+@Deprecated
 @Slf4j
 public class NettyClient {
 

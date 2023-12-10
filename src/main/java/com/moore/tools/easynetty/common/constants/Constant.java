@@ -1,4 +1,4 @@
-package com.moore.tools.easynetty.constants;
+package com.moore.tools.easynetty.common.constants;
 
 /**
  * @author ：imoore

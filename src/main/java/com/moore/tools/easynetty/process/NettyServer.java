@@ -1,14 +1,11 @@
 package com.moore.tools.easynetty.process;
 
-import com.moore.tools.easynetty.constants.Constant;
-import com.moore.tools.easynetty.service.NettyHelper;
+import com.moore.tools.easynetty.common.constants.Constant;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.Delimiters;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
@@ -17,10 +14,12 @@ import java.util.function.Supplier;
 
 /**
  * 服务端实例
+ *
  * @author ：imoore
  * @date ：created in 2023/11/9 20:05
  * @version: v
  */
+@Deprecated
 @Slf4j
 public class NettyServer {
 
@@ -114,7 +113,7 @@ public class NettyServer {
                     .channel(NioServerSocketChannel.class)
                     //设置默认最大连接数
                     .option(ChannelOption.SO_BACKLOG, DEFAULT_MAX_CONNECTIONS)
-                    .option(ChannelOption.SO_KEEPALIVE,true)
+                    .option(ChannelOption.SO_KEEPALIVE, true)
                     .childHandler(impl.get());
             log.info("netty server init done");
         });
