@@ -4,6 +4,7 @@ import com.moore.tools.easynetty.common.exceptions.EasyNettyException;
 import com.moore.tools.easynetty.service.exchange.BaseAbstractReceiver;
 import com.moore.tools.easynetty.service.exchange.receive.IReceiver;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
@@ -11,6 +12,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  * server处理器
  * @author ：imoore
  */
+@ChannelHandler.Sharable
 public abstract class ServerAbstractChannelHandler extends ChannelInboundHandlerAdapter {
     protected IReceiver<BaseAbstractReceiver.ReceiveEntity<String>> receiver;
 
