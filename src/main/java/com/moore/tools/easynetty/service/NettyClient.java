@@ -31,7 +31,7 @@ public class NettyClient extends NettyAbstractClient {
      * 业务处理线程数量一般是1：4或者1：8
      */
     private final static Integer WORKER_GROUP_THREADS = 4;
-    private ChannelInboundHandlerAdapter channelHandler;
+    private ChannelHandlerAdapter channelHandler;
     private ISender sender;
 
     public NettyClient() {
@@ -68,7 +68,7 @@ public class NettyClient extends NettyAbstractClient {
      * @param channelHandler 处理器
      * @return this
      */
-    public NettyClient addChannelHandler(Supplier<? extends ChannelInboundHandlerAdapter> channelHandler) {
+    public NettyClient addChannelHandler(Supplier<? extends ChannelHandlerAdapter> channelHandler) {
         this.channelHandler = Optional.ofNullable(channelHandler.get()).orElseThrow(() -> new EasyNettyException(ErrorMessageEnum.NO_CHANNEL_HANDLER.formatter("Client")));
         return this;
     }
@@ -120,7 +120,7 @@ public class NettyClient extends NettyAbstractClient {
             try {
                 channelFuture = bootstrap.connect(ipAddress, port).sync();
                 isConnected = true;
-                log.info("Client started on {}:{}.", ipAddress, port);
+                log.debug("Client started on {}:{}.", ipAddress, port);
                 break;
             } catch (Exception e) {
                 retryCount++;
@@ -147,7 +147,7 @@ public class NettyClient extends NettyAbstractClient {
                     // 连接失败时进行重连，可以选择延迟一段时间后再次尝试
                     scheduleReconnect(ipAddress, port, 10);
                 } else {
-                    log.info("Client connected to {}:{}", ipAddress, port);
+                    log.debug("Client connected to {}:{}", ipAddress, port);
                 }
             }));
         }

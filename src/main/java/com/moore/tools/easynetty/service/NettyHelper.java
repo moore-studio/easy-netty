@@ -40,7 +40,7 @@ public class NettyHelper {
      * @param message
      */
     public static void send(Channel channel, String sequence, String message) {
-        log.info("send:{}", message);
+        log.debug("send:{}", message);
         message += "\n";
         byte[] bytes = message.getBytes();
         int length = bytes.length;
@@ -105,7 +105,7 @@ public class NettyHelper {
                 buf.readBytes(content);
                 data = new String(content, Charset.defaultCharset());
             }
-            log.info("Received sequence:{},message:{}", sequence, data);
+            log.debug("Received sequence:{},message:{}", sequence, data);
             messageConsumer.accept(sequence, data);
         } catch (Exception e) {
             log.error("received error " + e.getMessage(), e);

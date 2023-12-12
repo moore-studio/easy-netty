@@ -54,7 +54,7 @@ public abstract class BaseAbstractSender implements ISender {
             log.error("未获取到channel");
             return;
         }
-        log.info("send:{}", message);
+        log.debug("send:{}", message);
         message += "\n";
         byte[] bytes = message.getBytes();
         int length = bytes.length;

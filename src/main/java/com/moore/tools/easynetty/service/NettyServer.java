@@ -4,10 +4,7 @@ import com.moore.tools.easynetty.common.enums.ErrorMessageEnum;
 import com.moore.tools.easynetty.common.exceptions.EasyNettyException;
 import com.moore.tools.easynetty.service.netty.NettyAbstractServer;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -74,7 +71,7 @@ public class NettyServer extends NettyAbstractServer {
      * @param channelHandler 处理器
      * @return this
      */
-    public NettyServer addChannelHandler(Supplier<? extends ChannelInboundHandlerAdapter> channelHandler) {
+    public NettyServer addChannelHandler(Supplier<? extends ChannelHandlerAdapter> channelHandler) {
         this.channelHandler = Optional.ofNullable(channelHandler.get()).orElseThrow(() -> new EasyNettyException(ErrorMessageEnum.NO_CHANNEL_HANDLER.formatter("Client")));
         return this;
     }
@@ -91,7 +88,7 @@ public class NettyServer extends NettyAbstractServer {
         }
         try {
             channelFuture = bootstrap.bind(port).sync();
-            log.info("Server started on port {}.", port);
+            log.debug("Server started on port {}.", port);
         } catch (InterruptedException e) {
             log.error("sever startup failed:" + e.getMessage(), e);
         }

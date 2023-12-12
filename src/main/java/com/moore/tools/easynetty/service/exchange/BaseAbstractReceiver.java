@@ -54,14 +54,14 @@ public class BaseAbstractReceiver implements IReceiver<BaseAbstractReceiver.Rece
                 } else { //序列不存在
                     content = new byte[contentLen];
                     buf.readBytes(content); // Read content
-                    data = new String(content, Charset.defaultCharset()).replace("\n","");
+                    data = new String(content, Charset.defaultCharset()).replace("\n", "");
                 }
             } else {//读取全部可读数据 进行返回
                 content = new byte[buf.readableBytes()];
                 buf.readBytes(content);
                 data = new String(content, Charset.defaultCharset());
             }
-            log.info("Received sequence:{},message:{}", sequence, data);
+            log.debug("Received sequence:{},message:{}", sequence, data);
         } catch (Exception e) {
             log.error("received error " + e.getMessage(), e);
         } finally {

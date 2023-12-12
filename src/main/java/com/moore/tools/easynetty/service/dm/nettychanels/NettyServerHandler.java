@@ -24,9 +24,8 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     private final ISender sender;
 
     public NettyServerHandler() {
-        receiver = new BaseAbstractReceiver();
-        sender = new BaseAbstractSender() {
-        };
+        receiver = new ReceiverImpl();
+        sender = new SenderImpl();
 
     }
 
@@ -38,7 +37,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.info("client connected!" + ctx.channel().remoteAddress().toString());
+        log.debug("client connected!" + ctx.channel().remoteAddress().toString());
         CHANNELS.add(ctx.channel());
         String message = "server connected!";
         NettyHelper.send(ctx.channel(), "", message);
@@ -47,7 +46,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         CHANNELS.remove(ctx.channel());
-        log.info("Client disconnected: " + ctx.channel().remoteAddress());
+        log.debug("Client disconnected: " + ctx.channel().remoteAddress());
     }
 
     @Override

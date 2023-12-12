@@ -93,7 +93,7 @@ public abstract class BaseAbstractNetty<R extends AbstractBootstrap> {
         }
         try {
             channelFuture.channel().close().sync();
-            log.info("Client stopped.");
+            log.debug("Client stopped.");
         } catch (InterruptedException e) {
             log.error("Error while stopping the client: {}", e.getMessage());
             Thread.currentThread().interrupt();

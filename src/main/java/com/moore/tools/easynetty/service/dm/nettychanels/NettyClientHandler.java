@@ -19,15 +19,18 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     private final IReceiver<BaseAbstractReceiver.ReceiveEntity<String>> receiver;
 
     public NettyClientHandler() {
-        receiver = new BaseAbstractReceiver();
+        receiver = new ReceiverImpl();
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         receiver.receive(msg);
+//        NettyHelper.receivedData(msg, (s, s1) -> {
+//            log.info("s1:{},s:{}", s, s1);
+//        });
         // 客户端接收到服务端的响应
 //        NettyHelper.receivedData(msg, (s, data) -> {
-//            //log.info("received response from server: {},s:{}", data);
+//            //log.debug("received response from server: {},s:{}", data);
 //        });
     }
 
