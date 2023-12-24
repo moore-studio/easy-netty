@@ -1,7 +1,7 @@
 package com.moore.tools.easynetty.service.channelhandler;
 
 import com.moore.tools.easynetty.common.exceptions.EasyNettyException;
-import com.moore.tools.easynetty.service.exchange.BaseAbstractReceiver;
+import com.moore.tools.easynetty.service.exchange.NioMessage;
 import com.moore.tools.easynetty.service.exchange.receive.IReceiver;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -10,13 +10,14 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 
 /**
  * server处理器
+ *
  * @author ：imoore
  */
 @ChannelHandler.Sharable
 public abstract class ServerAbstractChannelHandler extends ChannelInboundHandlerAdapter {
-    protected IReceiver<BaseAbstractReceiver.ReceiveEntity<String>> receiver;
+    protected IReceiver<NioMessage> receiver;
 
-    public ServerAbstractChannelHandler(IReceiver<BaseAbstractReceiver.ReceiveEntity<String>> receiver) {
+    public ServerAbstractChannelHandler(IReceiver<NioMessage> receiver) {
         this.receiver = receiver;
     }
 
@@ -42,8 +43,8 @@ public abstract class ServerAbstractChannelHandler extends ChannelInboundHandler
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         try {
-            BaseAbstractReceiver.ReceiveEntity<String> receiveEntity = receiver.receive(msg);
-            receive(ctx.channel(), receiveEntity.getSequence(), receiveEntity.getData());
+            NioMessage receiveEntity = receiver.receive(msg);
+            receive(ctx.channel(), receiveEntity.getSequence(), receiveEntity.getMessage());
         } catch (Exception e) {
             throw new EasyNettyException(e);
         }
@@ -70,34 +71,39 @@ public abstract class ServerAbstractChannelHandler extends ChannelInboundHandler
 
     /**
      * 连接创建
+     *
      * @param channel 信道
      */
     public abstract void connected(Channel channel);
 
     /**
      * 客户端断连
+     *
      * @param channel 信道
      */
     public abstract void disconnected(Channel channel);
 
     /**
      * 消息接收
-     * @param channel 信道
+     *
+     * @param channel  信道
      * @param sequence 序列号
-     * @param message 消息
+     * @param message  消息
      */
     public abstract void receive(Channel channel, String sequence, String message);
 
     /**
      * 消息接收完成
+     *
      * @param channel 信道
      */
     public abstract void receiveCompleted(Channel channel);
 
     /**
      * 一场捕获
+     *
      * @param channel 信道
-     * @param cause 错误发生原因
+     * @param cause   错误发生原因
      */
     public abstract void exception(Channel channel, Throwable cause);
 }

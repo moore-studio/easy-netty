@@ -1,7 +1,7 @@
 package com.moore.tools.easynetty.service.channelhandler;
 
 import com.moore.tools.easynetty.common.exceptions.EasyNettyException;
-import com.moore.tools.easynetty.service.exchange.BaseAbstractReceiver;
+import com.moore.tools.easynetty.service.exchange.NioMessage;
 import com.moore.tools.easynetty.service.exchange.receive.IReceiver;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -13,17 +13,17 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  * @author ：imoore
  */
 public abstract class ClientAbstractChannelHandler extends ChannelInboundHandlerAdapter {
-    protected IReceiver<BaseAbstractReceiver.ReceiveEntity<String>> receiver;
+    protected IReceiver<NioMessage> receiver;
 
-    public ClientAbstractChannelHandler(IReceiver<BaseAbstractReceiver.ReceiveEntity<String>> receiver) {
+    public ClientAbstractChannelHandler(IReceiver<NioMessage> receiver) {
         this.receiver = receiver;
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         try {
-            BaseAbstractReceiver.ReceiveEntity<String> receiveEntity = receiver.receive(msg);
-            receive(ctx.channel(), receiveEntity.getSequence(), receiveEntity.getData());
+            NioMessage receiveEntity = receiver.receive(msg);
+            receive(ctx.channel(), receiveEntity.getSequence(), receiveEntity.getMessage());
         } catch (Exception e) {
             throw new EasyNettyException(e);
         }
