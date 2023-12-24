@@ -57,7 +57,7 @@ public class NettyClient extends NettyAbstractClient {
             protected void initChannel(SocketChannel socketChannel) throws Exception {
                 ChannelPipeline pipeline = socketChannel.pipeline();
                 //防止粘包，消息结尾追加换行符 一次解码最多处理8192个字节
-                pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
+//                pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
                 Optional.ofNullable(channelHandler).ifPresent(pipeline::addLast);
             }
         };

@@ -107,7 +107,7 @@ public class NettyClient {
                     //使用NIO非阻塞通信
                     .option(ChannelOption.SO_KEEPALIVE, true)
                     .channel(NioSocketChannel.class).handler(impl.get());
-            log.info("Netty server init done");
+            log.debug("Netty server init done");
         });
     }
 
@@ -228,7 +228,7 @@ public class NettyClient {
             try {
                 channelFuture = clientBootstrap.connect(ipAddress, port).sync();
                 isConnected = true;
-                log.info("Client started on {}:{}.", ipAddress, port);
+                log.debug("Client started on {}:{}.", ipAddress, port);
                 break;
             } catch (Exception e) {
                 retryCount++;
@@ -251,7 +251,7 @@ public class NettyClient {
                     // 连接失败时进行重连，可以选择延迟一段时间后再次尝试
                     scheduleReconnect(ipAddress, port, 10);
                 } else {
-                    log.info("Client connected to {}:{}", ipAddress, port);
+                    log.debug("Client connected to {}:{}", ipAddress, port);
                 }
             }));
         }
@@ -296,7 +296,7 @@ public class NettyClient {
         }
         try {
             if (channelFuture != null && channelFuture.channel().isActive()) {
-                log.info("Client stopped!");
+                log.debug("Client stopped!");
                 channelFuture.channel().close().sync();
             }
         } catch (InterruptedException e) {

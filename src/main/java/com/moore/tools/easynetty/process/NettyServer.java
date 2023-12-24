@@ -115,7 +115,7 @@ public class NettyServer {
                     .option(ChannelOption.SO_BACKLOG, DEFAULT_MAX_CONNECTIONS)
                     .option(ChannelOption.SO_KEEPALIVE, true)
                     .childHandler(impl.get());
-            log.info("netty server init done");
+            log.debug("netty server init done");
         });
     }
 
@@ -159,7 +159,7 @@ public class NettyServer {
         }
         try {
             channelFuture = serverBootstrap.bind(port).sync();
-            log.info("Server started on port {}.", port);
+            log.debug("Server started on port {}.", port);
         } catch (InterruptedException e) {
             log.error("sever startup failed:" + e.getMessage(), e);
         }
@@ -194,7 +194,7 @@ public class NettyServer {
                 return;
             }
             if (channelFuture.channel().isActive()) {
-                log.info("server stopped.");
+                log.debug("server stopped.");
                 channelFuture.channel().close();
             }
             bossGroup.shutdownGracefully().sync();

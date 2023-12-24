@@ -3,6 +3,7 @@ package com.moore.tools.easynetty;
 import com.moore.tools.easynetty.service.NettyClient;
 import com.moore.tools.easynetty.service.NettyHelper;
 import com.moore.tools.easynetty.service.dm.nettychanels.NettyClientHandler;
+import com.moore.tools.easynetty.service.dm.nettychanels.SenderImpl;
 import com.moore.tools.easynetty.service.exchange.BaseAbstractSender;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,12 +20,11 @@ public class ClientTest {
     public static void main(String[] args) throws InterruptedException {
         NettyClient nettyClient = new NettyClient();
         nettyClient.addChannelHandler(NettyClientHandler::new)
-                .bind(new BaseAbstractSender() {
-                })
+                .bind(new SenderImpl())
                 .connect("localhost", 9000);
 
         for (int i = 0; i < 10; i++) {
-            nettyClient.send(("Hello, Netty Server ! " + i));
+            nettyClient.send(UUID.randomUUID().toString(), ("Hello, Netty Server ! " + i));
             Thread.sleep(1000);
         }
         nettyClient.stop();

@@ -46,8 +46,8 @@ public class NettyServer extends NettyAbstractServer {
                 //使用NIO非阻塞通信
                 .channel(NioServerSocketChannel.class)
                 //设置默认最大连接数
-                .option(ChannelOption.SO_BACKLOG, DEFAULT_MAX_CONNECTIONS)
-                .option(ChannelOption.SO_KEEPALIVE, true);
+                .option(ChannelOption.SO_BACKLOG, DEFAULT_MAX_CONNECTIONS);
+                //.option(ChannelOption.SO_KEEPALIVE, true);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.moore.tools.easynetty.service.exchange;
 
+import com.alibaba.fastjson.JSON;
 import com.moore.tools.easynetty.service.exchange.send.ISender;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -8,10 +9,12 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /**
  * 消息发送基础实现
+ *
  * @author ：imoore
  * @date ：created in 2023/12/8 20:16
  * @version: v
@@ -44,12 +47,14 @@ public abstract class BaseAbstractSender implements ISender {
     }
 
     /**
-     *  消息发送实现
-     * @param channel 信道
+     * 消息发送实现
+     *
+     * @param channel  信道
      * @param sequence 序列
-     * @param message 消息
+     * @param message  消息
      */
-    public void sendImpl(Channel channel, String sequence, String message) {
+    @Deprecated
+    public void sendImp(Channel channel, String sequence, String message) {
         if (nonChannelInstance()) {
             log.error("未获取到channel");
             return;
@@ -70,7 +75,35 @@ public abstract class BaseAbstractSender implements ISender {
     }
 
     /**
+     * 消息发送实现
+     *
+     * @param channel  信道
+     * @param sequence 序列
+     * @param message  消息
+     */
+    public void sendImpl(Channel channel, String sequence, String message) {
+        if (nonChannelInstance()) {
+            log.error("未获取到channel");
+            return;
+        }
+        log.debug("send:{}", message);
+        final String sequenceStr = sequence != null ? sequence : "";
+        final String messageStr = message != null ? message : "";
+        String msg = JSON.toJSONString(new NioMessage(sequenceStr, messageStr)) + "\n";
+        log.debug("send:{}", msg);
+        byte[] messageByte = msg.getBytes(StandardCharsets.UTF_8);
+        final int messageLen = (int) Math.floor(msg.length() * 1.5);
+        ByteBuf buf = channel.alloc().buffer(messageLen); // Allocate buffer
+        buf.writeInt(msg.length());
+        buf.writeBytes(messageByte);
+        buf.readerIndex(0);
+        buf.writerIndex(messageLen);
+        channel.writeAndFlush(buf);
+    }
+
+    /**
      * chanel未被实例化
+     *
      * @return true/false
      */
     public boolean nonChannelInstance() {
@@ -79,8 +112,9 @@ public abstract class BaseAbstractSender implements ISender {
 
     /**
      * 消息方式
+     *
      * @param sequence 序列号
-     * @param message 消息
+     * @param message  消息
      */
 
     public void send(String sequence, String message) {

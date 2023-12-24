@@ -37,13 +37,13 @@ easy-netty
     NettyHelper.sendWithSequence(channel,"hello");
     //接收消息并获取序列（UUID）
     NettyHelper.receivedDataWithSequence(obj,(sequence,data)->{
-       log.info("sequence:{},data:{}",sequence,data);
+       log.debug("sequence:{},data:{}",sequence,data);
     });
     //发送消息，不带序列（UUID）
     NettyHelper.send(channel,"hello");
     //接收没有序列（UUID）的消息
     NettyHelper.receivedData(obj,data->{
-       log.info("data:{}",data);
+       log.debug("data:{}",data);
     });
     ```
   * service.condition.IOperation

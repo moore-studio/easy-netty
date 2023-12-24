@@ -1,5 +1,6 @@
 package com.moore.tools.easynetty.service.exchange;
 
+import com.alibaba.fastjson.JSON;
 import com.moore.tools.easynetty.service.exchange.receive.IReceiver;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
@@ -8,17 +9,19 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 消息接收基础实现
+ *
  * @author ：imoore
  * @date ：created in 2023/12/8 21:49
  * @version: v
  */
 @Slf4j
-public class BaseAbstractReceiver implements IReceiver<BaseAbstractReceiver.ReceiveEntity<String>> {
+public abstract class BaseAbstractReceiver implements IReceiver<NioMessage> {
     @Override
-    public ReceiveEntity<String> receive(Object message) {
+    public NioMessage receive(Object message) {
         return receiveImpl(message);
     }
 
@@ -28,7 +31,8 @@ public class BaseAbstractReceiver implements IReceiver<BaseAbstractReceiver.Rece
      * @param message 消息
      * @return 结果
      */
-    public ReceiveEntity<String> receiveImpl(Object message) {
+    @Deprecated
+    public ReceiveEntity<String> receiveImp(Object message) {
         String sequence = "";
         String data = "";
         ByteBuf buf = (ByteBuf) message;
@@ -69,6 +73,24 @@ public class BaseAbstractReceiver implements IReceiver<BaseAbstractReceiver.Rece
         }
 
         return new ReceiveEntity<String>(sequence, data);
+    }
+
+    public NioMessage receiveImpl(Object message) {
+        ByteBuf buf = (ByteBuf) message;
+        NioMessage msg = null;
+        try {
+            int len = buf.readInt();
+            byte[] messageByte = new byte[len];
+            buf.readBytes(messageByte);
+            String data = new String(messageByte, StandardCharsets.UTF_8);
+            msg = JSON.parseObject(data, NioMessage.class);
+            log.debug("Received:{}", data);
+        } catch (Exception e) {
+            log.error("received error " + e.getMessage(), e);
+        } finally {
+            buf.release();
+        }
+        return msg;
     }
 
     @Data
