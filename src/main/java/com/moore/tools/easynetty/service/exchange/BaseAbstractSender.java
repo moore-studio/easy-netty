@@ -7,7 +7,6 @@ import io.netty.channel.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Queue;
@@ -30,7 +29,7 @@ public abstract class BaseAbstractSender implements ISender {
     /**
      * 默认四个字节的预留位置
      */
-    private static Integer RESERVED_BIT = 4;
+    private Integer reservedBit = 4;
     protected Channel channel;
 
     public BaseAbstractSender(Queue<NioMessage> messages, Channel channel) {
@@ -74,7 +73,7 @@ public abstract class BaseAbstractSender implements ISender {
      * @param reservedBit 预留位
      */
     public void setMessageReservedBit(int reservedBit) {
-        RESERVED_BIT = reservedBit;
+        this.reservedBit = reservedBit;
     }
 
 
@@ -83,33 +82,6 @@ public abstract class BaseAbstractSender implements ISender {
         addImpl(sequence, message);
     }
 
-    /**
-     * 消息发送实现
-     *
-     * @param channel  信道
-     * @param sequence 序列
-     * @param message  消息
-     */
-    @Deprecated
-    public void sendImp(Channel channel, String sequence, String message) {
-        if (nonChannelInstance()) {
-            log.error("未获取到channel");
-            return;
-        }
-        log.debug("send:{}", message);
-        message += "\n";
-        byte[] bytes = message.getBytes();
-        int length = bytes.length;
-        final String sequenceStr = sequence != null ? sequence : "";
-        final int sequenceLen = sequenceStr.length();
-        ByteBuf buf = channel.alloc().buffer(RESERVED_BIT + sequenceLen + RESERVED_BIT + length); // Allocate buffer
-        //序列和数据写入缓冲区
-        buf.writeInt(sequenceLen);
-        buf.writeCharSequence(sequenceStr, Charset.defaultCharset());
-        buf.writeInt(length);
-        buf.writeBytes(bytes);
-        channel.writeAndFlush(buf);
-    }
 
     /**
      * 消息发送实现
@@ -125,7 +97,7 @@ public abstract class BaseAbstractSender implements ISender {
         String msg = JSON.toJSONString(message);
         log.debug("send:{}", msg);
         byte[] messageByte = msg.getBytes(StandardCharsets.UTF_8);
-        final int messageLen = (int) Math.floor(msg.length() * 1.5);
+        final int messageLen = (int) Math.floor(msg.length() * 1.5) + reservedBit * 2;
         ByteBuf buf = channel.alloc().buffer(messageLen); // Allocate buffer
         buf.writeInt(msg.length());
         buf.writeBytes(messageByte);
