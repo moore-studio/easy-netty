@@ -79,6 +79,9 @@ public abstract class BaseAbstractSender implements ISender {
 
     @Override
     public void send(Channel channel, String sequence, String message) {
+        if (this.channel == null) {
+            this.channel = channel;
+        }
         addImpl(sequence, message);
     }
 

@@ -124,7 +124,7 @@ public class NettyClient extends NettyAbstractClient {
                 channelFuture = bootstrap.connect(ipAddress, port).sync();
                 isConnected = true;
                 sender.addChannel(channelFuture.channel());
-                log.debug("Client started on {}:{}.", ipAddress, port);
+                log.info("Client started on {}:{}.", ipAddress, port);
                 break;
             } catch (Exception e) {
                 retryCount++;

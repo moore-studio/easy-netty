@@ -4,7 +4,10 @@ import com.moore.tools.easynetty.common.enums.ErrorMessageEnum;
 import com.moore.tools.easynetty.common.exceptions.EasyNettyException;
 import com.moore.tools.easynetty.service.netty.NettyAbstractServer;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerAdapter;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -47,7 +50,7 @@ public class NettyServer extends NettyAbstractServer {
                 .channel(NioServerSocketChannel.class)
                 //设置默认最大连接数
                 .option(ChannelOption.SO_BACKLOG, DEFAULT_MAX_CONNECTIONS);
-                //.option(ChannelOption.SO_KEEPALIVE, true);
+        //.option(ChannelOption.SO_KEEPALIVE, true);
     }
 
     /**
@@ -88,7 +91,7 @@ public class NettyServer extends NettyAbstractServer {
         }
         try {
             channelFuture = bootstrap.bind(port).sync();
-            log.debug("Server started on port {}.", port);
+            log.info("Server started on port {}.", port);
         } catch (InterruptedException e) {
             log.error("sever startup failed:" + e.getMessage(), e);
         }
