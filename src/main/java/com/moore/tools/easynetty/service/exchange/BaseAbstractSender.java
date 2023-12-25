@@ -4,13 +4,17 @@ import com.alibaba.fastjson.JSON;
 import com.moore.tools.easynetty.service.exchange.send.ISender;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 消息发送基础实现
@@ -20,14 +24,46 @@ import java.util.Objects;
  * @version: v
  */
 @Slf4j
-@AllArgsConstructor
-@NoArgsConstructor
 public abstract class BaseAbstractSender implements ISender {
+    protected Queue<NioMessage> messages;
+    protected ScheduledExecutorService executorService;
     /**
      * 默认四个字节的预留位置
      */
     private static Integer RESERVED_BIT = 4;
-    private Channel channel;
+    protected Channel channel;
+
+    public BaseAbstractSender(Queue<NioMessage> messages, Channel channel) {
+        this.messages = messages;
+        this.channel = channel;
+        executor();
+    }
+
+    public BaseAbstractSender() {
+        messages = new LinkedBlockingQueue<>(1000);
+        executor();
+    }
+
+    @Override
+    public void addChannel(Channel channel) {
+        this.channel = channel;
+    }
+
+    /**
+     * 定时执行发送消息
+     * 1线程
+     * 每秒执行1次
+     */
+    public void executor() {
+        executorService = Executors.newScheduledThreadPool(1);
+        executorService.scheduleAtFixedRate(() -> {
+            NioMessage entity = messages.poll();
+            if (entity != null) {
+                sendImpl(channel, entity);
+            }
+        }, 0, 1, TimeUnit.SECONDS);
+    }
+
 
     /**
      * 设置消息的预留位置
@@ -41,9 +77,10 @@ public abstract class BaseAbstractSender implements ISender {
         RESERVED_BIT = reservedBit;
     }
 
+
     @Override
     public void send(Channel channel, String sequence, String message) {
-        sendImpl(channel, sequence, message);
+        addImpl(sequence, message);
     }
 
     /**
@@ -77,19 +114,15 @@ public abstract class BaseAbstractSender implements ISender {
     /**
      * 消息发送实现
      *
-     * @param channel  信道
-     * @param sequence 序列
-     * @param message  消息
+     * @param channel 信道
+     * @param message 消息
      */
-    public void sendImpl(Channel channel, String sequence, String message) {
-        if (nonChannelInstance()) {
+    public void sendImpl(Channel channel, NioMessage message) {
+        if (!nonChannelInstance()) {
             log.error("未获取到channel");
             return;
         }
-        log.debug("send:{}", message);
-        final String sequenceStr = sequence != null ? sequence : "";
-        final String messageStr = message != null ? message : "";
-        String msg = JSON.toJSONString(new NioMessage(sequenceStr, messageStr)) + "\n";
+        String msg = JSON.toJSONString(message);
         log.debug("send:{}", msg);
         byte[] messageByte = msg.getBytes(StandardCharsets.UTF_8);
         final int messageLen = (int) Math.floor(msg.length() * 1.5);
@@ -116,9 +149,33 @@ public abstract class BaseAbstractSender implements ISender {
      * @param sequence 序列号
      * @param message  消息
      */
-
     public void send(String sequence, String message) {
+        addImpl(sequence, message);
+    }
 
-        sendImpl(channel, sequence, message);
+    /**
+     * 消息添加到队列
+     *
+     * @param sequence 序列
+     * @param message  消息
+     */
+    public synchronized void addImpl(String sequence, String message) {
+        final String sequenceStr = sequence != null ? sequence : "";
+        final String messageStr = message != null ? message : "";
+        if (StringUtils.isAllBlank(sequenceStr, messageStr)) {
+            log.warn("message is empty,not be send");
+            return;
+        }
+        messages.add(new NioMessage(sequenceStr, messageStr));
+    }
+
+    /**
+     * 获取执行器
+     *
+     * @return ScheduledExecutorService
+     */
+    @Override
+    public ScheduledExecutorService getScheduleExecutorService() {
+        return executorService;
     }
 }

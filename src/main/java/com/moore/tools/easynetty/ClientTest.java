@@ -1,10 +1,8 @@
 package com.moore.tools.easynetty;
 
 import com.moore.tools.easynetty.service.NettyClient;
-import com.moore.tools.easynetty.service.NettyHelper;
 import com.moore.tools.easynetty.service.dm.nettychanels.NettyClientHandler;
 import com.moore.tools.easynetty.service.dm.nettychanels.SenderImpl;
-import com.moore.tools.easynetty.service.exchange.BaseAbstractSender;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
@@ -25,8 +23,9 @@ public class ClientTest {
 
         for (int i = 0; i < 10; i++) {
             nettyClient.send(UUID.randomUUID().toString(), ("Hello, Netty Server ! " + i));
-            Thread.sleep(1000);
+
         }
+        Thread.sleep(60000);
         nettyClient.stop();
         //静态方法
         /*

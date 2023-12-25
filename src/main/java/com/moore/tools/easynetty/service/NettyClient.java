@@ -9,8 +9,6 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.Delimiters;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
@@ -22,6 +20,7 @@ import java.util.function.Supplier;
 
 /**
  * netty客户端类
+ *
  * @author ：imoore
  * @date ：created in 2023/12/10 15:23
  */
@@ -40,6 +39,7 @@ public class NettyClient extends NettyAbstractClient {
 
     /**
      * 实例配置
+     *
      * @param bootstrap netty实例
      */
     @Override
@@ -65,6 +65,7 @@ public class NettyClient extends NettyAbstractClient {
 
     /**
      * 追加信道处理器
+     *
      * @param channelHandler 处理器
      * @return this
      */
@@ -75,6 +76,7 @@ public class NettyClient extends NettyAbstractClient {
 
     /**
      * 绑定消息发送
+     *
      * @param senderImpl 消息发送实体
      * @return this
      */
@@ -85,8 +87,9 @@ public class NettyClient extends NettyAbstractClient {
 
     /**
      * 连接服务器
+     *
      * @param ipAddress ip地址
-     * @param port 端口
+     * @param port      端口
      */
     public void connect(String ipAddress, int port) {
         //拉起服务创建连接
@@ -120,6 +123,7 @@ public class NettyClient extends NettyAbstractClient {
             try {
                 channelFuture = bootstrap.connect(ipAddress, port).sync();
                 isConnected = true;
+                sender.addChannel(channelFuture.channel());
                 log.debug("Client started on {}:{}.", ipAddress, port);
                 break;
             } catch (Exception e) {
@@ -156,8 +160,9 @@ public class NettyClient extends NettyAbstractClient {
 
     /**
      * 消息发送
+     *
      * @param sequence 序列
-     * @param message 消息
+     * @param message  消息
      */
     public void send(String sequence, String message) {
         sendImpl(sequence, message);
@@ -165,6 +170,7 @@ public class NettyClient extends NettyAbstractClient {
 
     /**
      * 发送消息
+     *
      * @param message 消息
      */
     public void send(String message) {
@@ -173,8 +179,9 @@ public class NettyClient extends NettyAbstractClient {
 
     /**
      * 发送实现
+     *
      * @param sequence 序列号
-     * @param message 消息
+     * @param message  消息
      */
     private void sendImpl(String sequence, String message) {
         if (Objects.isNull(sender)) {
@@ -202,5 +209,14 @@ public class NettyClient extends NettyAbstractClient {
             connectImpl(ipAddress, port);
             executorService.shutdown(); // 重连后关闭定时任务
         }, delaySecond, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
+        if (sender.getScheduleExecutorService() == null) {
+            return;
+        }
+        sender.getScheduleExecutorService().shutdown();
     }
 }

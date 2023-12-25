@@ -3,6 +3,8 @@ package com.moore.tools.easynetty.service.dm.nettychanels;
 import com.moore.tools.easynetty.service.exchange.BaseAbstractSender;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.LinkedBlockingQueue;
+
 /**
  * @author ：imoore
  * @date ：created in 2023/12/12 19:25
