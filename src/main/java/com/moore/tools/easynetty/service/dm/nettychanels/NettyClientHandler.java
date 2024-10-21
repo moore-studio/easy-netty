@@ -2,6 +2,7 @@ package com.moore.tools.easynetty.service.dm.nettychanels;
 
 import com.moore.tools.easynetty.service.exchange.NioMessage;
 import com.moore.tools.easynetty.service.exchange.receive.IReceiver;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 
 @Slf4j
+@ChannelHandler.Sharable
 public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
     private final IReceiver<NioMessage> receiver;

@@ -56,6 +56,9 @@ public abstract class BaseAbstractSender implements ISender {
     public void executor() {
         executorService = Executors.newScheduledThreadPool(1);
         executorService.scheduleAtFixedRate(() -> {
+            if(nonChannelInstance()){
+                return;
+            }
             NioMessage entity = messages.poll();
             if (entity != null) {
                 sendImpl(channel, entity);
@@ -93,10 +96,10 @@ public abstract class BaseAbstractSender implements ISender {
      * @param message 消息
      */
     public void sendImpl(Channel channel, NioMessage message) {
-        if (!nonChannelInstance()) {
-            log.error("未获取到channel");
-            return;
-        }
+//        if (nonChannelInstance()) {
+//            log.error("未获取到channel");
+//            return;
+//        }
         String msg = JSON.toJSONString(message);
         log.debug("send:{}", msg);
         byte[] messageByte = msg.getBytes(StandardCharsets.UTF_8);
@@ -115,7 +118,7 @@ public abstract class BaseAbstractSender implements ISender {
      * @return true/false
      */
     public boolean nonChannelInstance() {
-        return Objects.nonNull(channel) && channel.isActive();
+        return Objects.isNull(channel) || !channel.isActive();
     }
 
     /**
@@ -137,10 +140,10 @@ public abstract class BaseAbstractSender implements ISender {
     public synchronized void addImpl(String sequence, String message) {
         final String sequenceStr = sequence != null ? sequence : "";
         final String messageStr = message != null ? message : "";
-        if (StringUtils.isAllBlank(sequenceStr, messageStr)) {
-            log.warn("message is empty,not be send");
-            return;
-        }
+//        if (StringUtils.isAllBlank(sequenceStr, messageStr)) {
+//            log.warn("message is empty,not be send");
+//            return;
+//        }
         messages.add(new NioMessage(sequenceStr, messageStr));
     }
 
