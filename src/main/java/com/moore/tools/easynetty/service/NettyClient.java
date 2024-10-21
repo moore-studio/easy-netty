@@ -10,6 +10,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -30,11 +31,34 @@ public class NettyClient extends NettyAbstractClient {
      * 业务处理线程数量一般是1：4或者1：8
      */
     private final static Integer WORKER_GROUP_THREADS = 4;
+    /**
+     * 消息适配器
+     */
     private ChannelHandlerAdapter channelHandler;
+    /**
+     * 消息发送接口
+     */
     private ISender sender;
+    /**
+     * ipaddress
+     */
+    private String ipAddress = null;
+    /**
+     * port
+     */
+    private int port = 0;
+    /**
+     * 内部重连次数
+     */
+    private int internalRetryCount = 0;
+    /**
+     * 定时job监控器 重连监控
+     */
+    private ScheduledExecutorService executorService;
 
     public NettyClient() {
         super(new Bootstrap(), new NioEventLoopGroup(WORKER_GROUP_THREADS));
+        retryChecking();
     }
 
     /**
@@ -46,8 +70,7 @@ public class NettyClient extends NettyAbstractClient {
     public void configured(Bootstrap bootstrap) {
         bootstrap.group(workerGroup)
                 //使用NIO非阻塞通信
-                .option(ChannelOption.SO_KEEPALIVE, true)
-                .channel(NioSocketChannel.class);
+                .option(ChannelOption.SO_KEEPALIVE, true).channel(NioSocketChannel.class);
     }
 
     @Override
@@ -92,6 +115,8 @@ public class NettyClient extends NettyAbstractClient {
      * @param port      端口
      */
     public void connect(String ipAddress, int port) {
+        this.ipAddress = ipAddress;
+        this.port = port;
         //拉起服务创建连接
         createInstance();
         connectImpl(ipAddress, port);
@@ -117,44 +142,44 @@ public class NettyClient extends NettyAbstractClient {
         int retryCount = 0;
         int connectMaxRetries = 5;
         int connectDelayTime = 3;
-        boolean isConnected = false;
+//        boolean isConnected = false;
 
-        while (retryCount < connectMaxRetries && !isConnected) {
-            try {
-                channelFuture = bootstrap.connect(ipAddress, port).sync();
-                isConnected = true;
-                sender.addChannel(channelFuture.channel());
-                log.info("Client started on {}:{}.", ipAddress, port);
-                break;
-            } catch (Exception e) {
-                retryCount++;
-                log.error("Connected failed reason is " + e.getMessage(), e);
-                log.warn("Retry attempt {}", retryCount);
+//        while (retryCount < connectMaxRetries && !isConnected) {
+        try {
+            channelFuture = bootstrap.connect(ipAddress, port).sync();
+//                isConnected = true;
+            sender.addChannel(channelFuture.channel());
+            log.info("Client started on {}:{}.", ipAddress, port);
+        } catch (Exception e) {
+            retryCount++;
+            log.error("Connected failed reason is " + e.getMessage(), e);
+            log.warn("Retry attempt {}", retryCount);
 
-                try {
-                    Thread.sleep(connectDelayTime * 1000);
-                } catch (Exception e1) {
-                    log.error(e1.getMessage(), e1);
-                }
-            } finally {
-                if (channelFuture != null && !channelFuture.isSuccess()) {
-                    channelFuture.channel().close();
-                }
+//                try {
+//                    Thread.sleep(connectDelayTime * 1000);
+//                } catch (Exception e1) {
+//                    log.error(e1.getMessage(), e1);
+//                }
+        } finally {
+            if (channelFuture != null && !channelFuture.isSuccess()) {
+                channelFuture.channel().close();
             }
         }
-        if (isConnected) {
-            //nettyInstance.exchange = CommonUtils.tryNewInstance(exchangeClass, new Class<?>[]{Channel.class}, channelFuture.channel());
-            //添加监视，断开重连 需要配合心跳检测
-            channelFuture.addListener((future -> {
-                if (!future.isSuccess()) {
-                    log.error("Connection attempt failed: {}", future.cause().getMessage());
-                    // 连接失败时进行重连，可以选择延迟一段时间后再次尝试
-                    scheduleReconnect(ipAddress, port, 10);
-                } else {
-                    log.debug("Client connected to {}:{}", ipAddress, port);
-                }
-            }));
-        }
+//        }
+//        if (isConnected) {
+//            //nettyInstance.exchange = CommonUtils.tryNewInstance(exchangeClass, new Class<?>[]{Channel.class}, channelFuture.channel());
+//            //添加监视，断开重连 需要配合心跳检测
+//            assert channelFuture != null;
+//            channelFuture.addListener((future -> {
+//                if (!future.isSuccess()) {
+//                    log.error("Connection attempt failed: {}", future.cause().getMessage());
+//                    // 连接失败时进行重连，可以选择延迟一段时间后再次尝试
+//                    scheduleReconnect(ipAddress, port, 10);
+//                } else {
+//                    log.debug("Client connected to {}:{}", ipAddress, port);
+//                }
+//            }));
+//        }
 
     }
 
@@ -189,8 +214,7 @@ public class NettyClient extends NettyAbstractClient {
             return;
         }
         if (isInactive()) {
-            log.error("Client not started,channel is inactive.");
-            return;
+            log.warn("Client not started,channel is inactive.");
         }
         sender.send(channelFuture.channel(), sequence, message);
     }
@@ -203,18 +227,44 @@ public class NettyClient extends NettyAbstractClient {
      * @param delaySecond 重连时间(秒)
      */
     private void scheduleReconnect(String ipAddress, int port, int delaySecond) {
-        // 在连接失败后，延迟一段时间后进行重连
-        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-        executorService.schedule(() -> {
+
+        executorService.scheduleAtFixedRate(() -> {
+            if (channelFuture == null || StringUtils.isEmpty(ipAddress) || port == 0) {
+                log.debug("Client non instance.");
+                return;
+            }
+            if (channelFuture.isSuccess()) {
+                if (internalRetryCount > 0) {
+                    internalRetryCount = 0;
+                }
+                log.debug("Server status : OK.");
+                return;
+            }
+            log.warn("Unable to connect to the server, try to connect.");
             connectImpl(ipAddress, port);
-            executorService.shutdown(); // 重连后关闭定时任务
-        }, delaySecond, TimeUnit.SECONDS);
+            internalRetryCount++;
+            if (internalRetryCount > 5) {
+                // 重连后关闭定时任务
+                executorService.shutdown();
+            }
+            //
+        }, 1000,delaySecond, TimeUnit.SECONDS);
     }
+
+    public void retryChecking() {
+        // 在连接失败后，延迟一段时间后进行重连
+        executorService = Executors.newScheduledThreadPool(1);
+        scheduleReconnect(ipAddress, port, 1);
+    }
+
 
     @Override
     public void stop() {
         super.stop();
-        if (sender.getScheduleExecutorService() == null) {
+        if(!executorService.isShutdown()){
+            executorService.shutdown();
+        }
+        if (sender.getScheduleExecutorService().isShutdown()) {
             return;
         }
         sender.getScheduleExecutorService().shutdown();

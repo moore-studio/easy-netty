@@ -93,7 +93,7 @@ public class NettyServer extends NettyAbstractServer {
             channelFuture = bootstrap.bind(port).sync();
             log.info("Server started on port {}.", port);
         } catch (InterruptedException e) {
-            log.error("sever startup failed:" + e.getMessage(), e);
+            log.error("sever startup failed:{}", e.getMessage(), e);
         }
     }
 }
