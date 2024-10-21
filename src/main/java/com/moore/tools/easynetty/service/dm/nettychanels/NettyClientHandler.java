@@ -34,5 +34,10 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         receiver.receive(msg);
     }
 
-
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        cause.printStackTrace();
+        ctx.channel().close();
+        ctx.close();
+    }
 }

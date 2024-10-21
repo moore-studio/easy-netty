@@ -56,7 +56,10 @@ public abstract class BaseAbstractSender implements ISender {
     public void executor() {
         executorService = Executors.newScheduledThreadPool(1);
         executorService.scheduleAtFixedRate(() -> {
-            if(nonChannelInstance()){
+            if ((long) messages.size() == 0) {
+                return;
+            }
+            if (nonChannelInstance()) {
                 return;
             }
             NioMessage entity = messages.poll();
