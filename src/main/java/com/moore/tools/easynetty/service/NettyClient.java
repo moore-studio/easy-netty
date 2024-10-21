@@ -145,45 +145,17 @@ public class NettyClient extends NettyAbstractClient {
         if (isInvalid()) {
             return;
         }
-
-        //服务器无法连接&重试
-//        boolean isConnected = false;
-
-//        while (retryCount < connectMaxRetries && !isConnected) {
         try {
             channelFuture = bootstrap.connect(ipAddress, port).sync();
-//                isConnected = true;
             sender.addChannel(channelFuture.channel());
             log.info("Client started on {}:{}.", ipAddress, port);
         } catch (Exception e) {
             log.error("Connected failed reason is " + e.getMessage(), e);
-
-//                try {
-//                    Thread.sleep(connectDelayTime * 1000);
-//                } catch (Exception e1) {
-//                    log.error(e1.getMessage(), e1);
-//                }
         } finally {
             if (channelFuture != null && !channelFuture.isSuccess()) {
                 channelFuture.channel().close();
             }
         }
-//        }
-//        if (isConnected) {
-//            //nettyInstance.exchange = CommonUtils.tryNewInstance(exchangeClass, new Class<?>[]{Channel.class}, channelFuture.channel());
-//            //添加监视，断开重连 需要配合心跳检测
-//            assert channelFuture != null;
-//            channelFuture.addListener((future -> {
-//                if (!future.isSuccess()) {
-//                    log.error("Connection attempt failed: {}", future.cause().getMessage());
-//                    // 连接失败时进行重连，可以选择延迟一段时间后再次尝试
-//                    scheduleReconnect(ipAddress, port, 10);
-//                } else {
-//                    log.debug("Client connected to {}:{}", ipAddress, port);
-//                }
-//            }));
-//        }
-
     }
 
     /**
@@ -236,7 +208,9 @@ public class NettyClient extends NettyAbstractClient {
                 log.debug("Client non instance.");
                 return;
             }
-            if (channelFuture != null && channelFuture.isSuccess()) {
+            if (!isInactive()) {
+                //HEART_BEET_PACKAGE
+                heartBeatPackage();
                 if (internalRetryCount > 0) {
                     internalRetryCount = 0;
                 }
@@ -262,6 +236,9 @@ public class NettyClient extends NettyAbstractClient {
         scheduleReconnect(ipAddress, port, 10);
     }
 
+    public void heartBeatPackage() {
+        send("HEART_BATE_PACKAGE_" + System.currentTimeMillis());
+    }
 
     @Override
     public void stop() {
