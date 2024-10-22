@@ -14,7 +14,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  * @author ：imoore
  */
 @ChannelHandler.Sharable
-public abstract class ClientAbstractChannelHandler extends ChannelInboundHandlerAdapter {
+public abstract class ClientAbstractChannelHandler extends ChannelInboundHandlerAdapter implements IReceiver<NioMessage> {
     protected IReceiver<NioMessage> receiver;
 
     public ClientAbstractChannelHandler(IReceiver<NioMessage> receiver) {
