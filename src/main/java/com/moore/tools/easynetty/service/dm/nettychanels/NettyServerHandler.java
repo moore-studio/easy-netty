@@ -25,7 +25,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     private final ISender sender;
 
     public NettyServerHandler() {
-        receiver = new ReceiverImpl();
+        receiver = new ReceiverImplHandler();
         sender = new SenderImpl();
 
     }

@@ -1,6 +1,7 @@
 package com.moore.tools.easynetty.service.channelhandler;
 
 import com.moore.tools.easynetty.common.exceptions.EasyNettyException;
+import com.moore.tools.easynetty.service.dm.nettychanels.ReceiverImplHandler;
 import com.moore.tools.easynetty.service.exchange.NioMessage;
 import com.moore.tools.easynetty.service.exchange.receive.IReceiver;
 import io.netty.channel.Channel;
@@ -9,19 +10,39 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 /**
- * server处理器
  *
- * @author ：imoore
+ * @author imoore
  */
 @ChannelHandler.Sharable
 @Deprecated
-public abstract class ServerAbstractChannelHandler extends ChannelInboundHandlerAdapter {
-    protected IReceiver<NioMessage> receiver;
+public abstract class AbstractReceiveHandler extends ChannelInboundHandlerAdapter implements IReceiver<NioMessage>  {
 
-    public ServerAbstractChannelHandler(IReceiver<NioMessage> receiver) {
-        this.receiver = receiver;
+    protected IReceiver<NioMessage> iReceiver;
+
+    public AbstractReceiveHandler(IReceiver<NioMessage> iReceiver) {
+        this.iReceiver = iReceiver;
     }
 
+    public AbstractReceiveHandler() {
+        this.iReceiver = new ReceiverImplHandler();
+    }
+
+
+    /**
+     * read封装
+     * @param ctx channel
+     * @param msg 消息
+     * @throws EasyNettyException 异常
+     */
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws EasyNettyException {
+        try {
+            NioMessage receiveEntity = iReceiver.receive(msg);
+            receiveMessage(ctx.channel(), receiveEntity.getSequence(), receiveEntity.getMessage());
+        } catch (Exception e) {
+            throw new EasyNettyException(e);
+        }
+    }
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         try {
@@ -41,35 +62,13 @@ public abstract class ServerAbstractChannelHandler extends ChannelInboundHandler
         }
     }
 
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        try {
-            NioMessage receiveEntity = receiver.receive(msg);
-            receive(ctx.channel(), receiveEntity.getSequence(), receiveEntity.getMessage());
-        } catch (Exception e) {
-            throw new EasyNettyException(e);
-        }
-    }
-
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) {
-        try {
-            receiveCompleted(ctx.channel());
-        } catch (Exception e) {
-            throw new EasyNettyException(e);
-        }
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        try {
-            exception(ctx.channel(), cause);
-        } catch (Exception e) {
-            throw new EasyNettyException(e);
-        }
-    }
-
-
+    /**
+     * 接收消息
+     * @param channel 当前的chanel
+     * @param sequence 消息序列号
+     * @param data 数据
+     */
+    public abstract void receiveMessage(Channel channel,String sequence,Object data);
     /**
      * 连接创建
      *
@@ -83,15 +82,6 @@ public abstract class ServerAbstractChannelHandler extends ChannelInboundHandler
      * @param channel 信道
      */
     public abstract void disconnected(Channel channel);
-
-    /**
-     * 消息接收
-     *
-     * @param channel  信道
-     * @param sequence 序列号
-     * @param message  消息
-     */
-    public abstract void receive(Channel channel, String sequence, String message);
 
     /**
      * 消息接收完成

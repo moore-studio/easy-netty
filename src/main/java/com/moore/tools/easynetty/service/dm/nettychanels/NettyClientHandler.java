@@ -21,7 +21,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     private final IReceiver<NioMessage> receiver;
 
     public NettyClientHandler() {
-        receiver = new ReceiverImpl();
+        receiver = new ReceiverImplHandler();
     }
 
     @Override
