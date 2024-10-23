@@ -1,7 +1,9 @@
 package com.moore.tools.easynetty.service;
 
+import com.moore.tools.easynetty.common.constants.Constant;
 import com.moore.tools.easynetty.common.enums.ErrorMessageEnum;
 import com.moore.tools.easynetty.common.exceptions.EasyNettyException;
+import com.moore.tools.easynetty.service.exchange.NioMessage;
 import com.moore.tools.easynetty.service.exchange.send.ISender;
 import com.moore.tools.easynetty.service.netty.NettyAbstractClient;
 import com.moore.tools.easynetty.zexample.HeartBeatsHandler;
@@ -87,9 +89,9 @@ public class NettyClient extends NettyAbstractClient {
                 ChannelPipeline pipeline = socketChannel.pipeline();
                 //防止粘包，消息结尾追加换行符 一次解码最多处理8192个字节
 //                pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
-                pipeline.addLast(new IdleStateHandler(0,5,0,TimeUnit.SECONDS));
+                pipeline.addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS));
                 pipeline.addLast(new HeartBeatsHandler());
-                for(ChannelHandler handler : channelHandlers){
+                for (ChannelHandler handler : channelHandlers) {
                     Optional.ofNullable(handler).ifPresent(pipeline::addLast);
                 }
             }
@@ -193,7 +195,7 @@ public class NettyClient extends NettyAbstractClient {
         if (isInactive()) {
             log.warn("Client not started,channel is inactive.");
         }
-        sender.send(channelFuture.channel(), sequence, message);
+        sender.send(channelFuture.channel(), new NioMessage(Constant.CLIENT_IDENTIFY_ID, sequence, message));
     }
 
     /**

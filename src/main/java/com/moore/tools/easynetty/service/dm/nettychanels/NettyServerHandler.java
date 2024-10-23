@@ -40,8 +40,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         log.debug("client connected!" + ctx.channel().remoteAddress().toString());
         CHANNELS.add(ctx.channel());
-        String message = JSON.toJSONString(new NioMessage("", "server connected!"));
-        sender.send(ctx.channel(), "", message);
+        sender.send(ctx.channel(), new NioMessage("","","server connected!"));
     }
 
     @Override
@@ -58,8 +57,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
 //            NettyHelper.send(ctx.channel(), "", "i got your message :[" + d.replace("\n","") + "]");
 //        });
         NioMessage entity = receiver.receive(msg);
-        String replyMsg = JSON.toJSONString(new NioMessage("", "i got your message :[" + entity.getMessage() + "]"));
-        sender.send(ctx.channel(), "", "i got your message :[" + entity.getMessage() + "]");
+        sender.send(ctx.channel(), new NioMessage(entity.getIdentifyId(),"", "i got your message :[" + entity.getMessage() + "]"));
     }
 
     @Override

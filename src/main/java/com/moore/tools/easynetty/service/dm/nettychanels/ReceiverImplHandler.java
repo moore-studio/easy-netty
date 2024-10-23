@@ -1,6 +1,7 @@
 package com.moore.tools.easynetty.service.dm.nettychanels;
 
 import com.moore.tools.easynetty.service.channelhandler.BaseAbstractReceiverHandler;
+import com.moore.tools.easynetty.service.exchange.NioMessage;
 import io.netty.channel.Channel;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 @Deprecated
 public class ReceiverImplHandler extends BaseAbstractReceiverHandler {
     @Override
-    public void receiveMessage(Channel channel, String sequence, Object data) {
+    public void receiveMessage(Channel channel, NioMessage message) {
 
     }
 

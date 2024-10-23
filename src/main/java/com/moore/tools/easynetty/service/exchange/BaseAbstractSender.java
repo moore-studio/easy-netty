@@ -1,6 +1,7 @@
 package com.moore.tools.easynetty.service.exchange;
 
 import com.alibaba.fastjson.JSON;
+import com.moore.tools.easynetty.common.constants.LogMessageConstant;
 import com.moore.tools.easynetty.service.exchange.send.ISender;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -84,11 +85,11 @@ public abstract class BaseAbstractSender implements ISender {
 
 
     @Override
-    public void send(Channel channel, String sequence, String message) {
+    public void send(Channel channel, NioMessage message) {
         if (this.channel == null) {
             this.channel = channel;
         }
-        addImpl(sequence, message);
+        addImpl(message);
     }
 
 
@@ -125,29 +126,34 @@ public abstract class BaseAbstractSender implements ISender {
     }
 
     /**
-     * 消息方式
-     *
-     * @param sequence 序列号
-     * @param message  消息
+     * 消息发送
+     * @param identifyId 客户端识别Id
+     * @param sequence 序列
+     * @param message 消息内容
      */
-    public void send(String sequence, String message) {
-        addImpl(sequence, message);
+    public void send(String identifyId, String sequence, String message) {
+        addImpl(new NioMessage(identifyId, sequence, message));
     }
 
     /**
      * 消息添加到队列
      *
-     * @param sequence 序列
-     * @param message  消息
+     * @param message NioMessage
      */
-    public synchronized void addImpl(String sequence, String message) {
-        final String sequenceStr = sequence != null ? sequence : "";
-        final String messageStr = message != null ? message : "";
-//        if (StringUtils.isAllBlank(sequenceStr, messageStr)) {
-//            log.warn("message is empty,not be send");
+    public synchronized void addImpl(NioMessage message) {
+        if (message == null) {
+            log.warn(LogMessageConstant.W_MSG_NO_SEND, "NioMessage is null");
+            return;
+        }
+//        if (StringUtils.isBlank(message.getIdentifyId())) {
+//            log.warn(LogMessageConstant.W_MSG_NO_SEND, "identify id is empty");
 //            return;
 //        }
-        messages.add(new NioMessage(sequenceStr, messageStr));
+        if (StringUtils.isBlank(message.getMessage())) {
+            log.warn(LogMessageConstant.W_MSG_NO_SEND, "message is empty");
+            return;
+        }
+        messages.add(message);
     }
 
     /**

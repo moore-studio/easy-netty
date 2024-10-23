@@ -1,5 +1,6 @@
 package com.moore.tools.easynetty.service.exchange.send;
 
+import com.moore.tools.easynetty.service.exchange.NioMessage;
 import io.netty.channel.Channel;
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -16,10 +17,9 @@ public interface ISender {
      * 消息发送
      *
      * @param channel  信道
-     * @param sequence 序列，用于确认消息是否发送 可以为null，也可以为""
      * @param message  消息内容
      */
-    void send(Channel channel, String sequence, String message);
+    void send(Channel channel, NioMessage message);
 
     /**
      * 添加channel

@@ -18,6 +18,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class NioMessage implements Serializable {
     private static final Long serialVersionUID = 1L;
+    private String identifyId;
     private String sequence;
     private String message;
 

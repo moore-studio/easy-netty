@@ -112,7 +112,7 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws EasyNettyException {
         try {
             NioMessage receiveEntity = this.receive(msg);
-            receiveMessage(ctx.channel(), receiveEntity.getSequence(), receiveEntity.getMessage());
+            receiveMessage(ctx.channel(), receiveEntity);
         } catch (Exception e) {
             throw new EasyNettyException(e);
         }
@@ -151,11 +151,10 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
     /**
      * 接收消息
      *
-     * @param channel  当前的chanel
-     * @param sequence 消息序列号
-     * @param data     数据
+     * @param channel 当前的chanel
+     * @param message 消息序列号
      */
-    public abstract void receiveMessage(Channel channel, String sequence, Object data);
+    public abstract void receiveMessage(Channel channel, NioMessage message);
 
     /**
      * 连接创建

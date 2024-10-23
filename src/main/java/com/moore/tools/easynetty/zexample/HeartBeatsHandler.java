@@ -1,6 +1,7 @@
 package com.moore.tools.easynetty.zexample;
 
 import com.moore.tools.easynetty.service.dm.nettychanels.SenderImpl;
+import com.moore.tools.easynetty.service.exchange.NioMessage;
 import com.moore.tools.easynetty.service.exchange.send.ISender;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @ChannelHandler.Sharable
 public class HeartBeatsHandler extends ChannelInboundHandlerAdapter {
     ISender sender;
+
     public HeartBeatsHandler() {
         sender = new SenderImpl();
     }
@@ -41,7 +43,7 @@ public class HeartBeatsHandler extends ChannelInboundHandlerAdapter {
                 case WRITER_IDLE:
                     System.out.println("Write timeout: No data sent for a while.");
                     // 可以选择发送心跳包到客户端
-                    sender.send(ctx.channel(), UUID.randomUUID().toString(), "HEART_BEATS");
+                    sender.send(ctx.channel(), new NioMessage("", UUID.randomUUID().toString(), "HEART_BEATS"));
                     break;
                 case ALL_IDLE:
                     System.out.println("All timeout: No read or write for a while.");
