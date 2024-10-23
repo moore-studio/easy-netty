@@ -17,10 +17,10 @@ public class ServerTest {
 
         NettyServer nettyServer = new NettyServer();
 //        nettyServer.addChannelHandler(NettyServerHandler::new)
-        nettyServer
+        nettyServer.setIdentifyId("0")
 //                .addChannelHandler(()-> new IdleStateHandler(10,30,0, TimeUnit.SECONDS))
 //                .addChannelHandler(HeartBeatsHandler::new)
-                .addChannelHandler(ExampleServerHandler::new)
+                .addChannelHandler(() -> new ExampleServerHandler(nettyServer.getIdentifyId()))
                 .start(9000);
 
 //        NettyServer.build(NettyServerHandler::new);

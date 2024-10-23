@@ -6,6 +6,7 @@ import com.moore.tools.easynetty.service.channelhandler.BaseAbstractReceiverHand
 import com.moore.tools.easynetty.service.dm.nettychanels.SenderImpl;
 import com.moore.tools.easynetty.service.exchange.NioMessage;
 import com.moore.tools.easynetty.service.exchange.send.ISender;
+import com.sun.xml.internal.ws.api.ha.StickyFeature;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.group.ChannelGroup;
@@ -13,30 +14,36 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author ：imoore
  */
 @Slf4j
 public class ExampleServerHandler extends BaseAbstractReceiverHandler {
-    private final ISender sender;
     /**
      * 存储所有连接的Channel
      */
-    private static final ChannelGroup CHANNELS = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+//    private static final ChannelGroup CHANNELS = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+    Map<String, Channel> user = new HashMap<>();
 
-    public ExampleServerHandler() {
-        sender = new SenderImpl();
+    public ExampleServerHandler(String identityId) {
+        super(identityId);
     }
 
     @Override
     public void receiveMessage(Channel channel, NioMessage message) {
+        if (user.get(message.getIdentifyId()) == null || !user.get(message.getIdentifyId()).isActive()) {
+            user.put(message.getIdentifyId(), channel);
+        }
         log.debug("read:{}", JSON.toJSONString(message));
 //        // 读取客户端发送的消息并验证消息序号
 //        NettyHelper.receivedData(msg,(s,d)->{
 //            NettyHelper.send(ctx.channel(), "", "i got your message :[" + d.replace("\n","") + "]");
 //        });
 //        String replyMsg = JSON.toJSONString();
-        sender.send(channel, new NioMessage(message.getIdentifyId(), "", "i got your message :[" + message.getMessage() + "]"));
+        sender.send(user.get(message.getIdentifyId()), new NioMessage(identityId, "", "i got your message :[" + message.getMessage() + "]"));
     }
 
     @Override

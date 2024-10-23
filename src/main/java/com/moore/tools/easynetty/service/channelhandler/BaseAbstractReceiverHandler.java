@@ -1,14 +1,18 @@
 package com.moore.tools.easynetty.service.channelhandler;
 
 import com.alibaba.fastjson.JSON;
+import com.moore.tools.easynetty.common.constants.LogMessageConstant;
 import com.moore.tools.easynetty.common.exceptions.EasyNettyException;
+import com.moore.tools.easynetty.service.dm.nettychanels.SenderImpl;
 import com.moore.tools.easynetty.service.exchange.NioMessage;
 import com.moore.tools.easynetty.service.exchange.receive.IReceiver;
+import com.moore.tools.easynetty.service.exchange.send.ISender;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.timeout.IdleStateEvent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 /**
  * 消息接收基础实现
@@ -27,6 +32,13 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @ChannelHandler.Sharable
 public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerAdapter implements IReceiver<NioMessage> {
+    protected String identityId;
+    protected ISender sender;
+
+    public BaseAbstractReceiverHandler(String identityId) {
+        this.identityId = identityId;
+        sender = new SenderImpl();
+    }
 
     @Override
     public NioMessage receive(Object message) {
@@ -128,6 +140,7 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
 
     }
 
+
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         try {
@@ -138,6 +151,39 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
         } catch (Exception e) {
             throw new EasyNettyException(e);
         }
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if (evt instanceof IdleStateEvent) {
+            IdleStateEvent event = (IdleStateEvent) evt;
+            switch (event.state()) {
+                case READER_IDLE:
+                    log.info(LogMessageConstant.I_HEART_BEAT_READ_TIMEOUT);
+                    this.heatBeatReader(ctx, event);
+                    break;
+                case WRITER_IDLE:
+                    log.info(LogMessageConstant.I_HEART_BEAT_WRITE_TIMEOUT);
+                    this.heartBeatWriter(ctx, event);
+                    break;
+                case ALL_IDLE:
+                    log.info(LogMessageConstant.I_ALL_IDLE_TIMEOUT);
+                    // 根据需要处理 ALL_IDLE 状态
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            super.userEventTriggered(ctx, evt);  // 如果不是心跳事件，则调用父类方法
+        }
+    }
+
+    public void heatBeatReader(ChannelHandlerContext ctx, IdleStateEvent event) {
+
+    }
+
+    public void heartBeatWriter(ChannelHandlerContext ctx, IdleStateEvent event) {
+
     }
 
     @Override

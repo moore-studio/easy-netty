@@ -44,6 +44,15 @@ public class NettyServer extends NettyAbstractServer {
         super(new ServerBootstrap(), new NioEventLoopGroup(BOSS_GROUP_THREADS), new NioEventLoopGroup(WORKER_GROUP_THREADS));
     }
 
+    /**
+     * 设置标识Id
+     * @param identifyId 标识Id
+     * @return
+     */
+    public NettyServer setIdentifyId(String identifyId) {
+        this.identifyId = identifyId;
+        return this;
+    }
 
     @Override
     public void configured(ServerBootstrap serverBootstrap) {
@@ -66,9 +75,9 @@ public class NettyServer extends NettyAbstractServer {
         return new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel socketChannel) {
-                socketChannel.pipeline().addLast(new IdleStateHandler(10,5,0, TimeUnit.SECONDS));
-                socketChannel.pipeline().addLast(new HeartBeatsHandler());
-                for (ChannelHandler handler : channelHandlers){
+                socketChannel.pipeline().addLast(new IdleStateHandler(10, 5, 0, TimeUnit.SECONDS));
+//                socketChannel.pipeline().addLast(new HeartBeatsHandler());
+                for (ChannelHandler handler : channelHandlers) {
                     Optional.ofNullable(handler).ifPresent(socketChannel.pipeline()::addLast);
                 }
 

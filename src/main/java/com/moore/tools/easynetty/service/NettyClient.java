@@ -90,12 +90,22 @@ public class NettyClient extends NettyAbstractClient {
                 //防止粘包，消息结尾追加换行符 一次解码最多处理8192个字节
 //                pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
                 pipeline.addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS));
-                pipeline.addLast(new HeartBeatsHandler());
+//                pipeline.addLast(new HeartBeatsHandler());
                 for (ChannelHandler handler : channelHandlers) {
                     Optional.ofNullable(handler).ifPresent(pipeline::addLast);
                 }
             }
         };
+    }
+
+    /**
+     * 设置唯一标识
+     * @param identityId 唯一标志
+     * @return
+     */
+    public NettyClient setIdentityId(String identityId) {
+        this.identifyId = identityId;
+        return this;
     }
 
     /**

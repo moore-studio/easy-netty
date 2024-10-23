@@ -24,7 +24,7 @@ public abstract class AbstractReceiveHandler extends ChannelInboundHandlerAdapte
     }
 
     public AbstractReceiveHandler() {
-        this.iReceiver = new ReceiverImplHandler();
+//        this.iReceiver = new ReceiverImplHandler();
     }
 
 
