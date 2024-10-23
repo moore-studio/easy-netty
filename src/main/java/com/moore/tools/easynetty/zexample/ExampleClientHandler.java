@@ -3,6 +3,7 @@ package com.moore.tools.easynetty.zexample;
 import com.moore.tools.easynetty.service.channelhandler.AbstractReceiveHandler;
 import com.moore.tools.easynetty.service.channelhandler.BaseAbstractReceiverHandler;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import lombok.extern.slf4j.Slf4j;
 
 /**

@@ -100,8 +100,10 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
         }
         return msg;
     }
+
     /**
      * read封装
+     *
      * @param ctx channel
      * @param msg 消息
      * @throws EasyNettyException 异常
@@ -115,6 +117,7 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
             throw new EasyNettyException(e);
         }
     }
+
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         try {
@@ -128,19 +131,32 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         try {
+            log.info("chanel disconnected");
             disconnected(ctx.channel());
+            super.channelInactive(ctx);
+//            ctx.channel().close();
         } catch (Exception e) {
             throw new EasyNettyException(e);
         }
     }
 
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        exception(ctx.channel(), cause);
+        super.exceptionCaught(ctx, cause);
+//        ctx.close();
+
+    }
+
     /**
      * 接收消息
-     * @param channel 当前的chanel
+     *
+     * @param channel  当前的chanel
      * @param sequence 消息序列号
-     * @param data 数据
+     * @param data     数据
      */
     public abstract void receiveMessage(Channel channel, String sequence, Object data);
+
     /**
      * 连接创建
      *
@@ -169,6 +185,7 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
      * @param cause   错误发生原因
      */
     public abstract void exception(Channel channel, Throwable cause);
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

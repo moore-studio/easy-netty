@@ -7,6 +7,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -25,12 +27,13 @@ public abstract class BaseAbstractNetty<R extends AbstractBootstrap> {
     /**
      * 处理器
      */
-    protected ChannelHandler channelHandler;
+    protected List<ChannelHandler> channelHandlers;
 
     public BaseAbstractNetty(R bootstrap, EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
         this.bossGroup = bossGroup;
         this.workerGroup = workerGroup;
         this.bootstrap = bootstrap;
+        channelHandlers = new ArrayList<>(10);
     }
 
     /**

@@ -3,6 +3,7 @@ package com.moore.tools.easynetty.service;
 import com.moore.tools.easynetty.common.enums.ErrorMessageEnum;
 import com.moore.tools.easynetty.common.exceptions.EasyNettyException;
 import com.moore.tools.easynetty.service.netty.NettyAbstractServer;
+import com.moore.tools.easynetty.zexample.HeartBeatsHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerAdapter;
@@ -11,9 +12,11 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
@@ -63,7 +66,12 @@ public class NettyServer extends NettyAbstractServer {
         return new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel socketChannel) {
-                Optional.ofNullable(channelHandler).ifPresent(socketChannel.pipeline()::addLast);
+                socketChannel.pipeline().addLast(new IdleStateHandler(10,5,0, TimeUnit.SECONDS));
+                socketChannel.pipeline().addLast(new HeartBeatsHandler());
+                for (ChannelHandler handler : channelHandlers){
+                    Optional.ofNullable(handler).ifPresent(socketChannel.pipeline()::addLast);
+                }
+
             }
         };
     }
@@ -75,7 +83,7 @@ public class NettyServer extends NettyAbstractServer {
      * @return this
      */
     public NettyServer addChannelHandler(Supplier<? extends ChannelHandlerAdapter> channelHandler) {
-        this.channelHandler = Optional.ofNullable(channelHandler.get()).orElseThrow(() -> new EasyNettyException(ErrorMessageEnum.NO_CHANNEL_HANDLER.formatter("Client")));
+        this.channelHandlers.add(Optional.ofNullable(channelHandler.get()).orElseThrow(() -> new EasyNettyException(ErrorMessageEnum.NO_CHANNEL_HANDLER.formatter("Client"))));
         return this;
     }
 

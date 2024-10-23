@@ -22,11 +22,11 @@ public class ClientTest {
                 .bind(new SenderImpl())
                 .connect("localhost", 9000);
 
-        for (int i = 0; i < 10; i++) {
-            nettyClient.send(UUID.randomUUID().toString(), ("Hello, Netty Server ! " + i));
-
-        }
-        Thread.sleep(60000);
+//        for (int i = 0; i < 10; i++) {
+//            nettyClient.send(UUID.randomUUID().toString(), ("Hello, Netty Server ! " + i));
+//
+//        }
+        Thread.sleep(120000);
         nettyClient.stop();
         //静态方法
         /*
