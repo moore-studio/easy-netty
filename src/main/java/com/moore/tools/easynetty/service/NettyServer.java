@@ -4,7 +4,6 @@ import com.moore.tools.easynetty.common.constants.LogMessageConstant;
 import com.moore.tools.easynetty.common.enums.ErrorMessageEnum;
 import com.moore.tools.easynetty.common.exceptions.EasyNettyException;
 import com.moore.tools.easynetty.service.netty.NettyAbstractServer;
-import com.moore.tools.easynetty.zexample.HeartBeatsHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerAdapter;
@@ -56,6 +55,11 @@ public class NettyServer extends NettyAbstractServer {
         return this;
     }
 
+    public NettyServer enableHeartBeatChecking() {
+        isEnableHeartBeatChecking = true;
+        return this;
+    }
+
     @Override
     public void configured(ServerBootstrap serverBootstrap) {
         //设置链接组合业务处理组
@@ -77,7 +81,9 @@ public class NettyServer extends NettyAbstractServer {
         return new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel socketChannel) {
-                socketChannel.pipeline().addLast(new IdleStateHandler(10, 5, 0, TimeUnit.SECONDS));
+                if (isEnableHeartBeatChecking) {
+                    socketChannel.pipeline().addLast(new IdleStateHandler(10, 5, 0, TimeUnit.SECONDS));
+                }
 //                socketChannel.pipeline().addLast(new HeartBeatsHandler());
                 for (ChannelHandler handler : channelHandlers) {
                     Optional.ofNullable(handler).ifPresent(socketChannel.pipeline()::addLast);
@@ -112,7 +118,7 @@ public class NettyServer extends NettyAbstractServer {
             channelFuture = bootstrap.bind(port).sync();
             log.info(LogMessageConstant.I_NETTY_START, "Server", "localhost", port);
         } catch (InterruptedException e) {
-            log.error(LogMessageConstant.E_THROW_ERROR, "Server Started",e.getMessage(), e);
+            log.error(LogMessageConstant.E_THROW_ERROR, "Server Started", e.getMessage(), e);
         }
     }
 }
