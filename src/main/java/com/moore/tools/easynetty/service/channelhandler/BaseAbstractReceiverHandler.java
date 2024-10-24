@@ -1,6 +1,7 @@
 package com.moore.tools.easynetty.service.channelhandler;
 
 import com.alibaba.fastjson.JSON;
+import com.moore.tools.easynetty.common.constants.Constant;
 import com.moore.tools.easynetty.common.constants.LogMessageConstant;
 import com.moore.tools.easynetty.common.exceptions.EasyNettyException;
 import com.moore.tools.easynetty.service.dm.nettychanels.SenderImpl;
@@ -124,7 +125,7 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws EasyNettyException {
         try {
             NioMessage receiveEntity = this.receive(msg);
-            receiveMessage(ctx.channel(), receiveEntity);
+            receiveMessage(ctx, receiveEntity);
         } catch (Exception e) {
             throw new EasyNettyException(e);
         }
@@ -133,7 +134,7 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         try {
-            connected(ctx.channel());
+            connected(ctx);
         } catch (Exception e) {
             throw new EasyNettyException(e);
         }
@@ -145,7 +146,7 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
     public void channelInactive(ChannelHandlerContext ctx) {
         try {
             log.info("chanel disconnected");
-            disconnected(ctx.channel());
+            disconnected(ctx);
             super.channelInactive(ctx);
 //            ctx.channel().close();
         } catch (Exception e) {
@@ -178,17 +179,29 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
         }
     }
 
+    /**
+     * 心跳Reader timeout处理（从客户端读取消息，间隔？没有上传触发）
+     *
+     * @param ctx
+     * @param event
+     */
     public void heatBeatReader(ChannelHandlerContext ctx, IdleStateEvent event) {
 
     }
 
+    /**
+     * 间隔？写一条消息处理
+     *
+     * @param ctx
+     * @param event
+     */
     public void heartBeatWriter(ChannelHandlerContext ctx, IdleStateEvent event) {
 
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        exception(ctx.channel(), cause);
+        exception(ctx, cause);
         super.exceptionCaught(ctx, cause);
 //        ctx.close();
 
@@ -200,28 +213,28 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
      * @param channel 当前的chanel
      * @param message 消息序列号
      */
-    public abstract void receiveMessage(Channel channel, NioMessage message);
+    public abstract void receiveMessage(ChannelHandlerContext channel, NioMessage message);
 
     /**
      * 连接创建
      *
      * @param channel 信道
      */
-    public abstract void connected(Channel channel);
+    public abstract void connected(ChannelHandlerContext channel);
 
     /**
      * 客户端断连
      *
      * @param channel 信道
      */
-    public abstract void disconnected(Channel channel);
+    public abstract void disconnected(ChannelHandlerContext channel);
 
     /**
      * 消息接收完成
      *
      * @param channel 信道
      */
-    public abstract void receiveCompleted(Channel channel);
+    public abstract void receiveCompleted(ChannelHandlerContext channel);
 
     /**
      * 一场捕获
@@ -229,7 +242,12 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
      * @param channel 信道
      * @param cause   错误发生原因
      */
-    public abstract void exception(Channel channel, Throwable cause);
+    public abstract void exception(ChannelHandlerContext channel, Throwable cause);
+
+
+    public String getChanelIdentityId(Channel channel) {
+        return channel.attr(Constant.ATTR_IDENTIFY_ID).get();
+    }
 
     @Data
     @NoArgsConstructor

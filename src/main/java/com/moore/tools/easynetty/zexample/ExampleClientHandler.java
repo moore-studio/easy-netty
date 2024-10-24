@@ -20,27 +20,28 @@ public class ExampleClientHandler extends BaseAbstractReceiverHandler {
     }
 
     @Override
-    public void receiveMessage(Channel channel, NioMessage message) {
+    public void receiveMessage(ChannelHandlerContext channel, NioMessage message) {
         log.info("receive msg:{}", JSON.toJSONString(message));
     }
 
     @Override
-    public void connected(Channel channel) {
+    public void connected(ChannelHandlerContext channel) {
         log.info("have a Connection");
+        sender.send(channel.channel(),new NioMessage(identityId,"","INIT_CLIENT_IDENTIFY_ID"));
     }
 
     @Override
-    public void disconnected(Channel channel) {
+    public void disconnected(ChannelHandlerContext channel) {
         log.info("lost a Connection");
     }
 
     @Override
-    public void receiveCompleted(Channel channel) {
+    public void receiveCompleted(ChannelHandlerContext channel) {
 
     }
 
     @Override
-    public void exception(Channel channel, Throwable cause) {
+    public void exception(ChannelHandlerContext channel, Throwable cause) {
         cause.printStackTrace();
     }
 

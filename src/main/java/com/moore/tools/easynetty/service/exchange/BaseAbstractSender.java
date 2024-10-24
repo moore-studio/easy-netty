@@ -86,7 +86,7 @@ public abstract class BaseAbstractSender implements ISender {
 
     @Override
     public void send(Channel channel, NioMessage message) {
-        if (this.channel == null) {
+        if (channel != null) {
             this.channel = channel;
         }
         addImpl(message);

@@ -18,8 +18,9 @@ public class ClientTest {
     public static void main(String[] args) throws InterruptedException {
         NettyClient nettyClient = new NettyClient();
 //        nettyClient.addChannelHandler(NettyClientHandler::new)
-        nettyClient.addChannelHandler(() -> new ExampleClientHandler(nettyClient.getIdentifyId()))
+        nettyClient
                 .setIdentityId("1")
+                .addChannelHandler(() -> new ExampleClientHandler(nettyClient.getIdentifyId()))
                 .bind(new SenderImpl())
                 .connect("localhost", 9000);
 

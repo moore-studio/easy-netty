@@ -13,6 +13,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -100,6 +101,7 @@ public class NettyClient extends NettyAbstractClient {
 
     /**
      * 设置唯一标识
+     *
      * @param identityId 唯一标志
      * @return
      */
@@ -162,6 +164,9 @@ public class NettyClient extends NettyAbstractClient {
         try {
             channelFuture = bootstrap.connect(ipAddress, port).sync();
             sender.addChannel(channelFuture.channel());
+            channelFuture.channel().attr(Constant.ATTR_IDENTIFY_ID).set(identifyId);
+            log.info("has identifyId:{}",channelFuture.channel().hasAttr(Constant.ATTR_IDENTIFY_ID));
+            log.info("identifyId :{}",channelFuture.channel().attr(Constant.ATTR_IDENTIFY_ID).get());
             log.info("Client started on {}:{}.", ipAddress, port);
         } catch (Exception e) {
             log.error("Connected failed reason is " + e.getMessage(), e);

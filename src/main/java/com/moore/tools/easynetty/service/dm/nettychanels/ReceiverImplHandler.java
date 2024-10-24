@@ -3,6 +3,7 @@ package com.moore.tools.easynetty.service.dm.nettychanels;
 import com.moore.tools.easynetty.service.channelhandler.BaseAbstractReceiverHandler;
 import com.moore.tools.easynetty.service.exchange.NioMessage;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -19,27 +20,27 @@ public class ReceiverImplHandler extends BaseAbstractReceiverHandler {
     }
 
     @Override
-    public void receiveMessage(Channel channel, NioMessage message) {
+    public void receiveMessage(ChannelHandlerContext channel, NioMessage message) {
 
     }
 
     @Override
-    public void connected(Channel channel) {
+    public void connected(ChannelHandlerContext channel) {
 
     }
 
     @Override
-    public void disconnected(Channel channel) {
+    public void disconnected(ChannelHandlerContext channel) {
 
     }
 
     @Override
-    public void receiveCompleted(Channel channel) {
+    public void receiveCompleted(ChannelHandlerContext channel) {
 
     }
 
     @Override
-    public void exception(Channel channel, Throwable cause) {
+    public void exception(ChannelHandlerContext channel, Throwable cause) {
 
     }
 }
