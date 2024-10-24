@@ -1,7 +1,7 @@
 package com.moore.tools.easynetty.service.dm.nettychanels;
 
-import com.alibaba.fastjson.JSON;
-import com.moore.tools.easynetty.service.exchange.NioMessage;
+import com.moore.tools.easynetty.service.exchange.entity.NioMessage;
+import com.moore.tools.easynetty.service.exchange.SenderImpl;
 import com.moore.tools.easynetty.service.exchange.receive.IReceiver;
 import com.moore.tools.easynetty.service.exchange.send.ISender;
 import io.netty.channel.ChannelHandler;
@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ChannelHandler.Sharable
+@Deprecated
 public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     private final IReceiver<NioMessage> receiver;
     private final ISender sender;

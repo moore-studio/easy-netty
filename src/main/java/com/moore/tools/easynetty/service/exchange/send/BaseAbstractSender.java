@@ -1,8 +1,8 @@
-package com.moore.tools.easynetty.service.exchange;
+package com.moore.tools.easynetty.service.exchange.send;
 
 import com.alibaba.fastjson.JSON;
 import com.moore.tools.easynetty.common.constants.LogMessageConstant;
-import com.moore.tools.easynetty.service.exchange.send.ISender;
+import com.moore.tools.easynetty.service.exchange.entity.NioMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import lombok.AllArgsConstructor;
@@ -28,7 +28,13 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public abstract class BaseAbstractSender implements ISender {
+    /**
+     * 消息队列
+     */
     protected Queue<SendEntity> message;
+    /**
+     * 消息发送执行器每秒发送一次
+     */
     protected ScheduledExecutorService executorService;
     /**
      * 默认四个字节的预留位置

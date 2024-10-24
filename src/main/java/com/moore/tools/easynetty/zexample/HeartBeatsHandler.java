@@ -1,7 +1,7 @@
 package com.moore.tools.easynetty.zexample;
 
-import com.moore.tools.easynetty.service.dm.nettychanels.SenderImpl;
-import com.moore.tools.easynetty.service.exchange.NioMessage;
+import com.moore.tools.easynetty.service.exchange.SenderImpl;
+import com.moore.tools.easynetty.service.exchange.entity.NioMessage;
 import com.moore.tools.easynetty.service.exchange.send.ISender;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;

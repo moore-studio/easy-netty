@@ -2,8 +2,7 @@ package com.moore.tools.easynetty.zexample;
 
 import com.alibaba.fastjson.JSON;
 import com.moore.tools.easynetty.service.channelhandler.BaseAbstractReceiverHandler;
-import com.moore.tools.easynetty.service.exchange.NioMessage;
-import io.netty.channel.Channel;
+import com.moore.tools.easynetty.service.exchange.entity.NioMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.timeout.IdleStateEvent;
 import lombok.extern.slf4j.Slf4j;

@@ -1,5 +1,6 @@
 package com.moore.tools.easynetty.service;
 
+import com.moore.tools.easynetty.common.constants.LogMessageConstant;
 import com.moore.tools.easynetty.common.enums.ErrorMessageEnum;
 import com.moore.tools.easynetty.common.exceptions.EasyNettyException;
 import com.moore.tools.easynetty.service.netty.NettyAbstractServer;
@@ -46,6 +47,7 @@ public class NettyServer extends NettyAbstractServer {
 
     /**
      * 设置标识Id
+     *
      * @param identifyId 标识Id
      * @return
      */
@@ -108,9 +110,9 @@ public class NettyServer extends NettyAbstractServer {
         }
         try {
             channelFuture = bootstrap.bind(port).sync();
-            log.info("Server started on port {}.", port);
+            log.info(LogMessageConstant.I_NETTY_START, "Server", "localhost", port);
         } catch (InterruptedException e) {
-            log.error("sever startup failed:{}", e.getMessage(), e);
+            log.error(LogMessageConstant.E_THROW_ERROR, "Server Started",e.getMessage(), e);
         }
     }
 }

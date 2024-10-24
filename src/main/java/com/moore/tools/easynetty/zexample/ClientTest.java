@@ -1,11 +1,8 @@
 package com.moore.tools.easynetty.zexample;
 
 import com.moore.tools.easynetty.service.NettyClient;
-import com.moore.tools.easynetty.service.dm.nettychanels.NettyClientHandler;
-import com.moore.tools.easynetty.service.dm.nettychanels.SenderImpl;
+import com.moore.tools.easynetty.service.exchange.SenderImpl;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.UUID;
 
 /**
  * @author ：imoore

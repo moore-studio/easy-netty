@@ -1,6 +1,6 @@
 package com.moore.tools.easynetty.service.exchange.send;
 
-import com.moore.tools.easynetty.service.exchange.NioMessage;
+import com.moore.tools.easynetty.service.exchange.entity.NioMessage;
 import io.netty.channel.Channel;
 
 import java.util.concurrent.ScheduledExecutorService;

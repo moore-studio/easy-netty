@@ -1,19 +1,18 @@
 package com.moore.tools.easynetty.service;
 
 import com.moore.tools.easynetty.common.constants.Constant;
+import com.moore.tools.easynetty.common.constants.LogMessageConstant;
 import com.moore.tools.easynetty.common.enums.ErrorMessageEnum;
 import com.moore.tools.easynetty.common.exceptions.EasyNettyException;
-import com.moore.tools.easynetty.service.exchange.NioMessage;
+import com.moore.tools.easynetty.service.exchange.entity.NioMessage;
 import com.moore.tools.easynetty.service.exchange.send.ISender;
 import com.moore.tools.easynetty.service.netty.NettyAbstractClient;
-import com.moore.tools.easynetty.zexample.HeartBeatsHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -71,6 +70,16 @@ public class NettyClient extends NettyAbstractClient {
     }
 
     /**
+     * 是否启用心跳检测
+     *
+     * @return
+     */
+    public NettyClient enableHeartBeatChecking() {
+        isEnableHeartBeatChecking = true;
+        return this;
+    }
+
+    /**
      * 实例配置
      *
      * @param bootstrap netty实例
@@ -90,8 +99,10 @@ public class NettyClient extends NettyAbstractClient {
                 ChannelPipeline pipeline = socketChannel.pipeline();
                 //防止粘包，消息结尾追加换行符 一次解码最多处理8192个字节
 //                pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
-                pipeline.addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS));
-//                pipeline.addLast(new HeartBeatsHandler());
+                if (isEnableHeartBeatChecking) {
+                    pipeline.addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS));
+                }
+
                 for (ChannelHandler handler : channelHandlers) {
                     Optional.ofNullable(handler).ifPresent(pipeline::addLast);
                 }
@@ -132,6 +143,7 @@ public class NettyClient extends NettyAbstractClient {
         return this;
     }
 
+
     /**
      * 连接服务器
      *
@@ -165,11 +177,9 @@ public class NettyClient extends NettyAbstractClient {
             channelFuture = bootstrap.connect(ipAddress, port).sync();
             sender.addChannel(channelFuture.channel());
             channelFuture.channel().attr(Constant.ATTR_IDENTIFY_ID).set(identifyId);
-            log.info("has identifyId:{}",channelFuture.channel().hasAttr(Constant.ATTR_IDENTIFY_ID));
-            log.info("identifyId :{}",channelFuture.channel().attr(Constant.ATTR_IDENTIFY_ID).get());
-            log.info("Client started on {}:{}.", ipAddress, port);
+            log.info(LogMessageConstant.I_NETTY_START, "Client", ipAddress, port);
         } catch (Exception e) {
-            log.error("Connected failed reason is " + e.getMessage(), e);
+            log.error(LogMessageConstant.E_THROW_ERROR, "Connected failed", e.getMessage(), e);
         } finally {
             if (channelFuture != null && !channelFuture.isSuccess()) {
                 channelFuture.channel().close();
@@ -204,13 +214,14 @@ public class NettyClient extends NettyAbstractClient {
      */
     private void sendImpl(String sequence, String message) {
         if (Objects.isNull(sender)) {
-            log.error("ISender not be implemented,please bind first ");
+            log.error(LogMessageConstant.E_SENDER_NO_IMPLEMENT);
             return;
         }
         if (isInactive()) {
-            log.warn("Client not started,channel is inactive.");
+            log.warn(LogMessageConstant.E_CHANNEL_IS_INACTIVE, "Client", "Sending message");
+            return;
         }
-        sender.send(channelFuture.channel(), new NioMessage(Constant.CLIENT_IDENTIFY_ID, sequence, message));
+        sender.send(channelFuture.channel(), new NioMessage(getIdentifyId(), sequence, message));
     }
 
     /**
@@ -224,12 +235,10 @@ public class NettyClient extends NettyAbstractClient {
 
         executorService.scheduleAtFixedRate(() -> {
             if (StringUtils.isEmpty(ipAddress) || port == 0) {
-                log.debug("Client non instance.");
+                log.warn(LogMessageConstant.W_NETTY_NO_INSTANCE, "Client");
                 return;
             }
             if (!isInactive()) {
-                //HEART_BEET_PACKAGE
-//                heartBeatPackage();
                 if (internalRetryCount > 0) {
                     internalRetryCount = 0;
                 }
@@ -237,10 +246,10 @@ public class NettyClient extends NettyAbstractClient {
                 return;
             }
             internalRetryCount++;
-            log.warn("Unable to connect to the server, try to connect,retries:{} / {}", internalRetryCount, CONNECTED_MAX_RETRIES);
+            log.warn(LogMessageConstant.W_RECONNECTED_MSG, internalRetryCount, CONNECTED_MAX_RETRIES);
             connectImpl(ipAddress, port);
             if (internalRetryCount >= CONNECTED_MAX_RETRIES) {
-                log.info("Retry service shutdown.");
+                log.info(LogMessageConstant.I_RECONNECTED_SERVICE_SHUTDOWN);
                 // 重连后关闭定时任务
                 executorService.shutdown();
             }
@@ -255,19 +264,14 @@ public class NettyClient extends NettyAbstractClient {
         scheduleReconnect(ipAddress, port, 10);
     }
 
-    public void heartBeatPackage() {
-        send("HEART_BATE_PACKAGE_" + System.currentTimeMillis());
-    }
-
     @Override
     public void stop() {
-        super.stop();
         if (!executorService.isShutdown()) {
             executorService.shutdown();
         }
-        if (sender.getScheduleExecutorService().isShutdown()) {
-            return;
+        if (!sender.getScheduleExecutorService().isShutdown()) {
+            sender.getScheduleExecutorService().shutdown();
         }
-        sender.getScheduleExecutorService().shutdown();
+        super.stop();
     }
 }

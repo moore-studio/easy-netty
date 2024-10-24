@@ -1,8 +1,7 @@
 package com.moore.tools.easynetty.service.dm.nettychanels;
 
 import com.moore.tools.easynetty.service.channelhandler.BaseAbstractReceiverHandler;
-import com.moore.tools.easynetty.service.exchange.NioMessage;
-import io.netty.channel.Channel;
+import com.moore.tools.easynetty.service.exchange.entity.NioMessage;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 

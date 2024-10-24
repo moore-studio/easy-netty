@@ -4,8 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.moore.tools.easynetty.common.constants.Constant;
 import com.moore.tools.easynetty.common.constants.LogMessageConstant;
 import com.moore.tools.easynetty.common.exceptions.EasyNettyException;
-import com.moore.tools.easynetty.service.dm.nettychanels.SenderImpl;
-import com.moore.tools.easynetty.service.exchange.NioMessage;
+import com.moore.tools.easynetty.service.exchange.SenderImpl;
+import com.moore.tools.easynetty.service.exchange.entity.NioMessage;
 import com.moore.tools.easynetty.service.exchange.receive.IReceiver;
 import com.moore.tools.easynetty.service.exchange.send.ISender;
 import io.netty.buffer.ByteBuf;
@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 
 /**
  * 消息接收基础实现
@@ -107,7 +106,7 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
             msg = JSON.parseObject(data, NioMessage.class);
             log.debug("Received:{}", data);
         } catch (Exception e) {
-            log.error("received error " + e.getMessage(), e);
+            log.error(LogMessageConstant.E_THROW_ERROR, "receiving the message", e.getMessage(), e);
         } finally {
             buf.release();
         }
@@ -145,7 +144,7 @@ public abstract class BaseAbstractReceiverHandler extends ChannelInboundHandlerA
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         try {
-            log.info("chanel disconnected");
+            log.debug("chanel disconnected");
             disconnected(ctx);
             super.channelInactive(ctx);
 //            ctx.channel().close();

@@ -1,10 +1,6 @@
 package com.moore.tools.easynetty.zexample;
 
 import com.moore.tools.easynetty.service.NettyServer;
-import com.moore.tools.easynetty.service.dm.nettychanels.NettyServerHandler;
-import io.netty.handler.timeout.IdleStateHandler;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author ：imoore

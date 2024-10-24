@@ -8,7 +8,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +27,7 @@ public abstract class BaseAbstractNetty<R extends AbstractBootstrap> {
     protected boolean isConfigured = false;
     protected ChannelFuture channelFuture;
 
+    protected boolean isEnableHeartBeatChecking = false;
     protected String identifyId;
     /**
      * 处理器
@@ -77,11 +77,11 @@ public abstract class BaseAbstractNetty<R extends AbstractBootstrap> {
      */
     public boolean isInvalid() {
         if (!isConfigured) {
-            log.error(LogMessageConstant.E_SERVER_NOT_BE_CONFIGURED);
+            log.error(LogMessageConstant.E_SERVER_NOT_BE_CONFIGURED, "netty");
             return true;
         }
         if (StringUtils.isBlank(identifyId)) {
-            log.error(LogMessageConstant.E_IDENTITY_ID_NOT_SET, "Server");
+            log.error(LogMessageConstant.E_IDENTITY_ID_NOT_SET, "Netty");
             return true;
         }
         return false;
@@ -101,18 +101,18 @@ public abstract class BaseAbstractNetty<R extends AbstractBootstrap> {
      */
     public void stop() {
         if (isInvalid()) {
-            log.error("Stop failure: Bootstrap was not configured.");
+            log.error(LogMessageConstant.E_SERVER_NOT_BE_CONFIGURED, "stop failure");
             return;
         }
         if (isInactive()) {
-            log.error("Stop failure: ChannelFuture is inactive.");
+            log.error(LogMessageConstant.E_CHANNEL_IS_INACTIVE, "Netty", "Stop failure");
             return;
         }
         try {
             channelFuture.channel().close().sync();
-            log.debug("Client stopped.");
+            log.info(LogMessageConstant.I_NETTY_STOP, "Client");
         } catch (InterruptedException e) {
-            log.error("Error while stopping the client: {}", e.getMessage());
+            log.error(LogMessageConstant.E_THROW_ERROR, "stopping the netty", e.getMessage(), e);
             Thread.currentThread().interrupt();
         } finally {
             Optional.ofNullable(bossGroup).ifPresent(EventExecutorGroup::shutdownGracefully);

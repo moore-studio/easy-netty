@@ -1,9 +1,7 @@
-package com.moore.tools.easynetty.service.dm.nettychanels;
+package com.moore.tools.easynetty.service.exchange;
 
-import com.moore.tools.easynetty.service.exchange.BaseAbstractSender;
+import com.moore.tools.easynetty.service.exchange.send.BaseAbstractSender;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * @author ：imoore

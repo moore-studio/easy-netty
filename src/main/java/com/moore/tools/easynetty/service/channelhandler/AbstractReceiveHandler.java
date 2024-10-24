@@ -1,8 +1,7 @@
 package com.moore.tools.easynetty.service.channelhandler;
 
 import com.moore.tools.easynetty.common.exceptions.EasyNettyException;
-import com.moore.tools.easynetty.service.dm.nettychanels.ReceiverImplHandler;
-import com.moore.tools.easynetty.service.exchange.NioMessage;
+import com.moore.tools.easynetty.service.exchange.entity.NioMessage;
 import com.moore.tools.easynetty.service.exchange.receive.IReceiver;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
