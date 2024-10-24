@@ -5,6 +5,9 @@ import com.moore.tools.easynetty.common.constants.LogMessageConstant;
 import com.moore.tools.easynetty.service.exchange.send.ISender;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -25,7 +28,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public abstract class BaseAbstractSender implements ISender {
-    protected Queue<NioMessage> messages;
+    protected Queue<SendEntity> message;
     protected ScheduledExecutorService executorService;
     /**
      * 默认四个字节的预留位置
@@ -33,14 +36,15 @@ public abstract class BaseAbstractSender implements ISender {
     private Integer reservedBit = 4;
     protected Channel channel;
 
-    public BaseAbstractSender(Queue<NioMessage> messages, Channel channel) {
-        this.messages = messages;
+    public BaseAbstractSender(Queue<SendEntity> messages, Channel channel) {
+
+        this.message = messages;
         this.channel = channel;
         executor();
     }
 
     public BaseAbstractSender() {
-        messages = new LinkedBlockingQueue<>(1000);
+        message = new LinkedBlockingQueue<>(1000);
         executor();
     }
 
@@ -57,15 +61,17 @@ public abstract class BaseAbstractSender implements ISender {
     public void executor() {
         executorService = Executors.newScheduledThreadPool(1);
         executorService.scheduleAtFixedRate(() -> {
-            if ((long) messages.size() == 0) {
+            if ((long) message.size() == 0) {
                 return;
             }
-            if (nonChannelInstance()) {
-                return;
-            }
-            NioMessage entity = messages.poll();
+
+            SendEntity entity = message.poll();
+
             if (entity != null) {
-                sendImpl(channel, entity);
+                if (entity.channel == null || !entity.channel.isActive()) {
+                    return;
+                }
+                sendImpl(entity.getChannel(), entity.getMessage());
             }
         }, 0, 1, TimeUnit.SECONDS);
     }
@@ -88,8 +94,8 @@ public abstract class BaseAbstractSender implements ISender {
     public void send(Channel channel, NioMessage message) {
         if (channel != null) {
             this.channel = channel;
+            addImpl(new SendEntity(channel, message));
         }
-        addImpl(message);
     }
 
 
@@ -100,10 +106,6 @@ public abstract class BaseAbstractSender implements ISender {
      * @param message 消息
      */
     public void sendImpl(Channel channel, NioMessage message) {
-//        if (nonChannelInstance()) {
-//            log.error("未获取到channel");
-//            return;
-//        }
         String msg = JSON.toJSONString(message);
         log.debug("send:{}", msg);
         byte[] messageByte = msg.getBytes(StandardCharsets.UTF_8);
@@ -127,12 +129,13 @@ public abstract class BaseAbstractSender implements ISender {
 
     /**
      * 消息发送
+     *
      * @param identifyId 客户端识别Id
-     * @param sequence 序列
-     * @param message 消息内容
+     * @param sequence   序列
+     * @param message    消息内容
      */
-    public void send(String identifyId, String sequence, String message) {
-        addImpl(new NioMessage(identifyId, sequence, message));
+    public void send(Channel channel, String identifyId, String sequence, String message) {
+        addImpl(new SendEntity(channel, new NioMessage(identifyId, sequence, message)));
     }
 
     /**
@@ -140,7 +143,7 @@ public abstract class BaseAbstractSender implements ISender {
      *
      * @param message NioMessage
      */
-    public synchronized void addImpl(NioMessage message) {
+    public synchronized void addImpl(SendEntity message) {
         if (message == null) {
             log.warn(LogMessageConstant.W_MSG_NO_SEND, "NioMessage is null");
             return;
@@ -149,11 +152,11 @@ public abstract class BaseAbstractSender implements ISender {
 //            log.warn(LogMessageConstant.W_MSG_NO_SEND, "identify id is empty");
 //            return;
 //        }
-        if (StringUtils.isBlank(message.getMessage())) {
+        if (StringUtils.isBlank(message.getMessage().getMessage())) {
             log.warn(LogMessageConstant.W_MSG_NO_SEND, "message is empty");
             return;
         }
-        messages.add(message);
+        this.message.add(message);
     }
 
     /**
@@ -164,5 +167,13 @@ public abstract class BaseAbstractSender implements ISender {
     @Override
     public ScheduledExecutorService getScheduleExecutorService() {
         return executorService;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class SendEntity {
+        private Channel channel;
+        private NioMessage message;
     }
 }
