@@ -83,6 +83,7 @@ public class NettyServer extends NettyAbstractServer {
             protected void initChannel(SocketChannel socketChannel) {
                 if (isEnableHeartBeatChecking) {
                     socketChannel.pipeline().addLast(new IdleStateHandler(10, 5, 0, TimeUnit.SECONDS));
+                    log.info(LogMessageConstant.I_HEART_BEAT_CHECKING_MSG, "Server");
                 }
 //                socketChannel.pipeline().addLast(new HeartBeatsHandler());
                 for (ChannelHandler handler : channelHandlers) {

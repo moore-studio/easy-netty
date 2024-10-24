@@ -19,6 +19,7 @@ public class ClientTest {
                 .setIdentityId("1")
                 .addChannelHandler(() -> new ExampleClientHandler(nettyClient.getIdentifyId()))
                 .bind(new SenderImpl())
+                .enableHeartBeatChecking()
                 .connect("localhost", 9000);
 
 //        for (int i = 0; i < 10; i++) {

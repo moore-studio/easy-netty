@@ -101,6 +101,7 @@ public class NettyClient extends NettyAbstractClient {
 //                pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
                 if (isEnableHeartBeatChecking) {
                     pipeline.addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS));
+                    log.info(LogMessageConstant.I_HEART_BEAT_CHECKING_MSG, "Client");
                 }
 
                 for (ChannelHandler handler : channelHandlers) {

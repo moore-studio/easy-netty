@@ -29,4 +29,6 @@ public class LogMessageConstant {
     public final static String W_RECONNECTED_MSG = "Unable to connect to the server, try to connect,retries:{} / {}";
     public final static String I_RECONNECTED_SERVICE_SHUTDOWN = "Reconnected service shutdown.";
 
+    public final static String I_HEART_BEAT_CHECKING_MSG = "Heat beat checking service started on {}";
+
 }
